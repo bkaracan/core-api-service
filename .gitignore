@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Secrets, Environment & Local Overrides (Kritik) ###
+.env
+.env.*
+!.env.example
+application-local.yml
+compose.override.yaml
+
+### Docker Volumes & Database Data ###
+postgres_data/
+data/
+*.log
