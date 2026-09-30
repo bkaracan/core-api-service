@@ -10,12 +10,12 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # =====================================================================
-# Stage 2: Extract Spring Boot Layered Jar
+# Stage 2: Extract Spring Boot Layered Jar (Spring Boot 3.3+ / 4.x tools)
 # =====================================================================
 FROM eclipse-temurin:21-jre-jammy AS extractor
 WORKDIR /workspace
 COPY --from=builder /workspace/target/*.jar app.jar
-RUN java -Djarmode=layertools -jar app.jar extract
+RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted
 
 # =====================================================================
 # Stage 3: Minimal, Hardened Production Runtime
@@ -28,10 +28,10 @@ RUN groupadd -r spring && useradd -r -g spring spring && chown -R spring:spring 
 USER spring:spring
 
 # Katmanları en az değişenden en sık değişene doğru kopyala (Docker Layer Caching)
-COPY --from=extractor --chown=spring:spring /workspace/dependencies/ ./
-COPY --from=extractor --chown=spring:spring /workspace/spring-boot-loader/ ./
-COPY --from=extractor --chown=spring:spring /workspace/snapshot-dependencies/ ./
-COPY --from=extractor --chown=spring:spring /workspace/application/ ./
+COPY --from=extractor --chown=spring:spring /workspace/extracted/dependencies/ ./
+COPY --from=extractor --chown=spring:spring /workspace/extracted/spring-boot-loader/ ./
+COPY --from=extractor --chown=spring:spring /workspace/extracted/snapshot-dependencies/ ./
+COPY --from=extractor --chown=spring:spring /workspace/extracted/application/ ./
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-XX:+UseZGC", "-XX:+ZGenerational", "-Djava.security.egd=file:/dev/./urandom", "org.springframework.boot.loader.launch.JarLauncher"]
