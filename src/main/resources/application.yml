@@ -1,0 +1,77 @@
+# =====================================================================
+# Enterprise Spring Boot Configuration
+# =====================================================================
+server:
+  port: 8080
+  shutdown: graceful # Pod/Container durdurulurken aktif istekleri guvenle tamamla
+
+spring:
+  application:
+    name: core-api-service
+
+  # Java 21 Project Loom - Sanal Is Parcaciklari (Virtual Threads)
+  threads:
+    virtual:
+      enabled: true
+
+  # Docker Compose Destegi
+  docker:
+    compose:
+      enabled: true
+      file: compose.yaml
+      lifecycle-management: start-and-stop
+
+  # Veritabani ve HikariCP Baglanti Havuzu (Yerel Gelistirme Varsayilanlari & Canli Ortam Ezmesi)
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:core_api_db}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  # Spring Data JPA / Hibernate Standartlari
+  jpa:
+    open-in-view: false # Kritik: Anti-pattern ve sizintilari onlemek icin daima false!
+    hibernate:
+      ddl-auto: validate # Asla update/create degil; sema kontrolu sadece Flyway ile yapilir!
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 25 # N+1 sorgu problemini engeller
+
+  # Flyway Sema Surumleme
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+# Observability: Actuator & Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true # Kubernetes Liveness & Readiness destegi
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# Springdoc Swagger UI Yapilandirmasi
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
