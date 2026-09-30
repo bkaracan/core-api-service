@@ -1,0 +1,67 @@
+name: Enterprise Spring Boot CI & Auto-Merge
+
+on:
+  push:
+    branches: [ development ]
+  pull_request:
+    branches: [ development, main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # =====================================================================
+  # Job 1: Build, Test & Container Verification
+  # =====================================================================
+  build-and-verify:
+    name: Build & Test (Java 21 + Testcontainers)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 LTS (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Maven Build & Integration Tests (PostgreSQL Testcontainers)
+        run: |
+          chmod +x ./mvnw
+          ./mvnw clean verify -B
+
+      - name: Verify Multi-Stage Dockerfile Build
+        run: |
+          docker build -t core-api-service:ci-test .
+
+  # =====================================================================
+  # Job 2: Automated Auto-Merge into 'main' upon Green Build
+  # =====================================================================
+  auto-merge-to-main:
+    name: Auto-Merge to Main (Fast-Forward)
+    needs: build-and-verify
+    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository with Full History
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git Bot Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fast-Forward Merge 'development' into 'main'
+        run: |
+          git checkout main
+          git merge --ff-only origin/development
+          git push origin main
+          echo "✅ Development branch successfully auto-merged into main!"
