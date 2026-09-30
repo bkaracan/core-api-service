@@ -42,7 +42,7 @@ jobs:
   # Job 2: Automated Auto-Merge into 'main' upon Green Build
   # =====================================================================
   auto-merge-to-main:
-    name: Auto-Merge to Main (Fast-Forward)
+    name: Auto-Merge to Main
     needs: build-and-verify
     if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -59,9 +59,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fast-Forward Merge 'development' into 'main'
+      - name: Merge 'development' into 'main'
         run: |
           git checkout main
-          git merge --ff-only origin/development
+          git pull origin main --rebase
+          git merge origin/development -m "chore(release): auto-merge development into main [skip ci]"
           git push origin main
           echo "✅ Development branch successfully auto-merged into main!"
