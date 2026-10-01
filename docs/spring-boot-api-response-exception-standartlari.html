@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Boot 4.1.1 Enterprise API Response &amp; RFC 7807 Exception Standards</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-alt: #161f30;
+      --panel-card: #1e293b;
+      --border: #1f2937;
+      --border-light: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --code-bg: #030712;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1120;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.75rem 0.5rem 0.25rem;
+    }
+
+    nav.nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+
+    nav.nav-menu a:hover {
+      color: #fff;
+      background: var(--panel-alt);
+    }
+
+    nav.nav-menu a.active {
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      font-weight: 600;
+      border-left: 3px solid var(--cyan);
+    }
+
+    .nav-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--panel);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    nav.nav-menu a.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 2.5rem 3.5rem;
+      max-width: 1200px;
+      overflow-y: auto;
+    }
+
+    /* Header Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(16, 185, 129, 0.04) 50%, rgba(9, 13, 22, 0) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 12px;
+      padding: 2rem 2.25rem;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero-tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 600;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .hero-tag.cyan { color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .hero-tag.green { color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+    .hero-tag.purple { color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    .hero-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 860px;
+      line-height: 1.6;
+    }
+
+    /* Section Structure */
+    section {
+      margin-bottom: 3.5rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-head {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.3rem;
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-top: 0.4rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Code Box & Topbar */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .code-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .code-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .code-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: var(--panel-alt);
+      color: var(--cyan);
+      border: 1px solid var(--border);
+    }
+
+    .btn-copy {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.7rem;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn-copy:hover {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+    }
+
+    .btn-copy.copied {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+    }
+
+    pre.code-content {
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.86rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    /* Syntax Highlighting */
+    .c-keyword { color: #f43f5e; font-weight: 600; }
+    .c-type { color: #38bdf8; }
+    .c-string { color: #34d399; }
+    .c-comment { color: #64748b; font-style: italic; }
+    .c-annotation { color: #eab308; }
+    .c-num { color: #fb923c; }
+    .c-var { color: #e2e8f0; }
+    .c-method { color: #a78bfa; }
+
+    /* Callouts */
+    .callout {
+      border-radius: var(--radius);
+      padding: 1.15rem 1.4rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .callout-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      line-height: 1.2;
+    }
+
+    .callout-info {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      color: #e0f2fe;
+    }
+
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fef3c7;
+    }
+
+    .callout-danger {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      color: #ffe4e6;
+    }
+
+    .callout-success {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #d1fae5;
+    }
+
+    /* Tabs */
+    .tab-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-header {
+      display: flex;
+      gap: 0.3rem;
+      border-bottom: 1px solid var(--border);
+      background: #0b1120;
+      padding: 0.5rem 0.75rem 0;
+      border-top-left-radius: var(--radius);
+      border-top-right-radius: var(--radius);
+    }
+
+    .tab-btn {
+      padding: 0.55rem 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: var(--cyan);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-bottom-color: var(--code-bg);
+      margin-bottom: -1px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Table */
+    .table-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      background: #0f172a;
+      padding: 0.8rem 1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* Pill Badges */
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+
+    .status-pill.s-200 { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-pill.s-400 { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-pill.s-401, .status-pill.s-403 { background: rgba(168, 85, 247, 0.15); color: var(--purple); border: 1px solid rgba(168, 85, 247, 0.3); }
+    .status-pill.s-404, .status-pill.s-409 { background: rgba(244, 63, 94, 0.15); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.3); }
+    .status-pill.s-500 { background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+    }
+
+    .checklist-check {
+      color: var(--green);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; }
+      main { padding: 1.5rem; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR NAVİGASYON -->
+  <aside>
+    <div class="brand-box">
+      <div class="brand-badge">⚡ Enterprise API Core</div>
+      <div class="brand-title">API Response &amp; RFC 7807 Standards</div>
+      <div class="brand-subtitle">Spring Boot 4.1.1 &bull; Java 21 LTS</div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Mimari Standartlar</div>
+      <a href="#asama-1" class="active"><span class="nav-num">1</span> Sözleşme Mimarisi &amp; Felsefe</a>
+      <a href="#asama-2"><span class="nav-num">2</span> Başarılı Yanıt (ApiResponse &amp; Page)</a>
+      <a href="#asama-3"><span class="nav-num">3</span> RFC 7807 ProblemDetail Sözleşmesi</a>
+      <a href="#asama-4"><span class="nav-num">4</span> Dağıtık İzleme (TraceId &amp; MDC)</a>
+      
+      <div class="nav-label">İstisna &amp; Güvenlik</div>
+      <a href="#asama-5"><span class="nav-num">5</span> GlobalExceptionHandler</a>
+      <a href="#asama-6"><span class="nav-num">6</span> Spring Security Filtre Hataları</a>
+      <a href="#asama-7"><span class="nav-num">7</span> Örnek Controller &amp; Canlı Senaryolar</a>
+      <a href="#asama-8"><span class="nav-num">8</span> Mimari Kontrol Listesi</a>
+    </nav>
+  </aside>
+
+  <!-- ANA İÇERİK ALANI -->
+  <main>
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+      <div class="hero-tags">
+        <span class="hero-tag cyan">Spring Boot 4.1.1 GA</span>
+        <span class="hero-tag green">Java 21 LTS</span>
+        <span class="hero-tag purple">RFC 7807 ProblemDetail</span>
+        <span class="hero-tag">Micrometer Observation &amp; MDC</span>
+        <span class="hero-tag">JSpecify @Nullable</span>
+        <span class="hero-tag">Jakarta EE 11</span>
+      </div>
+      <h1 class="hero-title">Kurumsal API Yanıt &amp; RFC 7807 Hata Standartları</h1>
+      <p class="hero-desc">
+        Kurumsal ölçekli mikroservis mimarilerinde veri tabanı ve Entity katmanına geçilmeden önce kurulması gereken temel sözleşmeler: Tekil &amp; sayfalanmış başarılı yanıt zarfları, dağıtık izleme destekli RFC 7807 hata sözleşmesi, merkezi ControllerAdvice ve Spring Security filtre istisna yönetimi.
+      </p>
+    </div>
+
+
+    <!-- AŞAMA 1: SÖZLEŞME MİMARİSİ & FELSEFE -->
+    <section id="asama-1">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 1</div>
+        <h2 class="section-title">Sözleşme Mimarisi &amp; Felsefe (Design Principles)</h2>
+        <p class="section-desc">Ön yüz (Frontend), mobil uygulamalar ve 3. parti entegrasyonlar için tahmin edilebilir, güvenli ve izlenebilir API sözleşmesi ilkeleri.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">🔍 Traceability (Uçtan Uca İzleme)</div>
+          <div class="card-text">
+            İster 200 başarılı yanıtı, ister 400 validasyon, ister 500 sunucu hatası olsun; her JSON gövdesinde ve HTTP Header'ında (<code>X-Trace-Id</code>) benzersiz bir <strong>traceId</strong> bulunur. İstemci hata aldığında destek ekibine sadece bu kimliği verir; loglar anında taranır.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📜 RFC 7807 Standardı</div>
+          <div class="card-text">
+            Hatalar için özel (proprietary) modeller üretilmez. IETF standardı <strong>RFC 7807 Problem Details for HTTP APIs</strong> benimsenir. Modern HTTP kütüphaneleri (Axios, Angular, Go, Python) bu standardı yerel olarak tanır.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🛡️ Zero Leakage (Sıfır Sızıntı)</div>
+          <div class="card-text">
+            Canlı ortamda hiçbir zaman Java StackTrace, SQL query parçacığı, dosya yolu veya Hibernate istisnası istemciye yansıtılmaz. Kritik teknik ayrıntılar sunucuda loglanır; istemciye yalnızca açıklayıcı, güvenli mesaj iletilir.
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">💡</div>
+        <div>
+          <strong>Kurumsal Ayrım: Başarılı Yanıt vs. Hata Yanıtı</strong><br>
+          Geleneksel anti-pattern'lerde hem başarılı hem hatalı yanıtlar tek bir <code>ApiResponse</code> içerisine sıkıştırılmaya çalışılır (örn. <code>isSuccess: false, error: ...</code>). Kurumsal standartta ise:
+          <strong>Başarılı yanıtlar</strong> (2xx) <code>ApiResponse&lt;T&gt;</code> veya <code>PageResponse&lt;T&gt;</code> zarfında taşınırken; <strong>tüm hatalar</strong> (4xx, 5xx) doğrudan IETF standardı <code>ProblemDetail</code> olarak döner. Bu sayede HTTP Status kodları anlamını korur.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 2: BAŞARILI YANIT ZARFI & SAYFALAMA -->
+    <section id="asama-2">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 2</div>
+        <h2 class="section-title">Başarılı Yanıt Zarfı (`ApiResponse`) &amp; Sayfalama (`PageResponse`)</h2>
+        <p class="section-desc">Java 21 ve Jakarta EE 11 ile uyumlu, generic tip güvenli, null-safe kurumsal yanıt modelleri.</p>
+      </div>
+
+      <div class="tab-container">
+        <div class="tab-header">
+          <button class="tab-btn active" onclick="switchCodeTab(this, 'tab-api-resp')">ApiResponse.java</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-page-resp')">PageResponse.java</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-resp-json')">Örnek JSON Çıktıları</button>
+        </div>
+
+        <!-- Tab 1: ApiResponse.java -->
+        <div id="tab-api-resp" class="tab-content active">
+          <div class="code-box">
+            <div class="code-topbar">
+              <div class="code-title">
+                <span class="code-badge">JAVA 21</span>
+                <span>com.enterprise.common.response.ApiResponse.java</span>
+              </div>
+              <button class="btn-copy" onclick="copyCode(this)">
+                <span>Kodu Kopyala</span>
+              </button>
+            </div>
+            <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.response;
+
+<span class="c-keyword">import</span> com.fasterxml.jackson.annotation.JsonInclude;
+<span class="c-keyword">import</span> org.jspecify.annotations.Nullable;
+<span class="c-keyword">import</span> lombok.Builder;
+<span class="c-keyword">import</span> lombok.Getter;
+
+<span class="c-keyword">import</span> java.time.Instant;
+
+<span class="c-comment">/**
+ * Standart kurumsal tekil REST API yanıt zarfı.
+ *
+ * @param &lt;T&gt; Yanıt verisinin nesne tipi
+ */</span>
+<span class="c-annotation">@Getter</span>
+<span class="c-annotation">@Builder</span>
+<span class="c-annotation">@JsonInclude</span>(JsonInclude.Include.NON_NULL)
+<span class="c-keyword">public class</span> <span class="c-type">ApiResponse</span>&lt;<span class="c-type">T</span>&gt; {
+
+    <span class="c-keyword">private final boolean</span> success;
+    <span class="c-keyword">private final</span> <span class="c-type">String</span> message;
+    <span class="c-keyword">private final</span> <span class="c-annotation">@Nullable</span> <span class="c-type">T</span> data;
+    <span class="c-keyword">private final</span> <span class="c-annotation">@Nullable</span> <span class="c-type">String</span> traceId;
+
+    <span class="c-annotation">@Builder.Default</span>
+    <span class="c-keyword">private final</span> <span class="c-type">Instant</span> timestamp = <span class="c-type">Instant</span>.<span class="c-method">now</span>();
+
+    <span class="c-comment">// Hızlı statik kurucu metodlar</span>
+    <span class="c-keyword">public static</span> &lt;<span class="c-type">T</span>&gt; <span class="c-type">ApiResponse</span>&lt;<span class="c-type">T</span>&gt; <span class="c-method">success</span>(<span class="c-annotation">@Nullable</span> <span class="c-type">T</span> data, <span class="c-annotation">@Nullable</span> <span class="c-type">String</span> traceId) {
+        <span class="c-keyword">return</span> <span class="c-type">ApiResponse</span>.&lt;<span class="c-type">T</span>&gt;<span class="c-method">builder</span>()
+                .<span class="c-method">success</span>(<span class="c-keyword">true</span>)
+                .<span class="c-method">message</span>(<span class="c-string">"Operation completed successfully"</span>)
+                .<span class="c-method">data</span>(data)
+                .<span class="c-method">traceId</span>(traceId)
+                .<span class="c-method">build</span>();
+    }
+
+    <span class="c-keyword">public static</span> &lt;<span class="c-type">T</span>&gt; <span class="c-type">ApiResponse</span>&lt;<span class="c-type">T</span>&gt; <span class="c-method">success</span>(<span class="c-annotation">@Nullable</span> <span class="c-type">T</span> data, <span class="c-type">String</span> message, <span class="c-annotation">@Nullable</span> <span class="c-type">String</span> traceId) {
+        <span class="c-keyword">return</span> <span class="c-type">ApiResponse</span>.&lt;<span class="c-type">T</span>&gt;<span class="c-method">builder</span>()
+                .<span class="c-method">success</span>(<span class="c-keyword">true</span>)
+                .<span class="c-method">message</span>(message)
+                .<span class="c-method">data</span>(data)
+                .<span class="c-method">traceId</span>(traceId)
+                .<span class="c-method">build</span>();
+    }
+
+    <span class="c-keyword">public static</span> &lt;<span class="c-type">T</span>&gt; <span class="c-type">ApiResponse</span>&lt;<span class="c-type">T</span>&gt; <span class="c-method">empty</span>(<span class="c-annotation">@Nullable</span> <span class="c-type">String</span> traceId) {
+        <span class="c-keyword">return</span> <span class="c-method">success</span>(<span class="c-keyword">null</span>, traceId);
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- Tab 2: PageResponse.java -->
+        <div id="tab-page-resp" class="tab-content">
+          <div class="code-box">
+            <div class="code-topbar">
+              <div class="code-title">
+                <span class="code-badge">SPRING DATA</span>
+                <span>com.enterprise.common.response.PageResponse.java</span>
+              </div>
+              <button class="btn-copy" onclick="copyCode(this)">
+                <span>Kodu Kopyala</span>
+              </button>
+            </div>
+            <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.response;
+
+<span class="c-keyword">import</span> lombok.Builder;
+<span class="c-keyword">import</span> lombok.Getter;
+<span class="c-keyword">import</span> org.springframework.data.domain.Page;
+
+<span class="c-keyword">import</span> java.util.List;
+
+<span class="c-comment">/**
+ * Spring Data Page nesnesini ön yüz için optimize edilmiş sayfalanmış formata dönüştürür.
+ */</span>
+<span class="c-annotation">@Getter</span>
+<span class="c-annotation">@Builder</span>
+<span class="c-keyword">public class</span> <span class="c-type">PageResponse</span>&lt;<span class="c-type">T</span>&gt; {
+
+    <span class="c-keyword">private final</span> <span class="c-type">List</span>&lt;<span class="c-type">T</span>&gt; items;
+    <span class="c-keyword">private final int</span> pageNumber;
+    <span class="c-keyword">private final int</span> pageSize;
+    <span class="c-keyword">private final long</span> totalElements;
+    <span class="c-keyword">private final int</span> totalPages;
+    <span class="c-keyword">private final boolean</span> isFirst;
+    <span class="c-keyword">private final boolean</span> isLast;
+    <span class="c-keyword">private final boolean</span> hasNext;
+    <span class="c-keyword">private final boolean</span> hasPrevious;
+
+    <span class="c-keyword">public static</span> &lt;<span class="c-type">T</span>&gt; <span class="c-type">PageResponse</span>&lt;<span class="c-type">T</span>&gt; <span class="c-method">of</span>(<span class="c-type">Page</span>&lt;<span class="c-type">T</span>&gt; page) {
+        <span class="c-keyword">return</span> <span class="c-type">PageResponse</span>.&lt;<span class="c-type">T</span>&gt;<span class="c-method">builder</span>()
+                .<span class="c-method">items</span>(page.<span class="c-method">getContent</span>())
+                .<span class="c-method">pageNumber</span>(page.<span class="c-method">getNumber</span>())
+                .<span class="c-method">pageSize</span>(page.<span class="c-method">getSize</span>())
+                .<span class="c-method">totalElements</span>(page.<span class="c-method">getTotalElements</span>())
+                .<span class="c-method">totalPages</span>(page.<span class="c-method">getTotalPages</span>())
+                .<span class="c-method">isFirst</span>(page.<span class="c-method">isFirst</span>())
+                .<span class="c-method">isLast</span>(page.<span class="c-method">isLast</span>())
+                .<span class="c-method">hasNext</span>(page.<span class="c-method">hasNext</span>())
+                .<span class="c-method">hasPrevious</span>(page.<span class="c-method">hasPrevious</span>())
+                .<span class="c-method">build</span>();
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- Tab 3: JSON Samples -->
+        <div id="tab-resp-json" class="tab-content">
+          <div class="code-box">
+            <div class="code-topbar">
+              <div class="code-title">
+                <span class="status-pill s-200">HTTP 200 OK</span>
+                <span>ApiResponse&lt;UserDto&gt; JSON Gövdesi</span>
+              </div>
+              <button class="btn-copy" onclick="copyCode(this)">
+                <span>JSON Kopyala</span>
+              </button>
+            </div>
+            <pre class="code-content"><code>{
+  <span class="c-string">"success"</span>: <span class="c-keyword">true</span>,
+  <span class="c-string">"message"</span>: <span class="c-string">"User profile fetched successfully"</span>,
+  <span class="c-string">"data"</span>: {
+    <span class="c-string">"id"</span>: <span class="c-string">"usr_9f4b1d"</span>,
+    <span class="c-string">"email"</span>: <span class="c-string">"developer@enterprise.com"</span>,
+    <span class="c-string">"role"</span>: <span class="c-string">"ADMIN"</span>
+  },
+  <span class="c-string">"traceId"</span>: <span class="c-string">"4bf92f3577b34da6a3ce929d0e0e4736"</span>,
+  <span class="c-string">"timestamp"</span>: <span class="c-string">"2026-09-30T19:55:00.123Z"</span>
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 3: RFC 7807 PROBLEMDETAIL SÖZLEŞMESİ -->
+    <section id="asama-3">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 3</div>
+        <h2 class="section-title">RFC 7807 ProblemDetail Hata Sözleşmesi</h2>
+        <p class="section-desc">IETF RFC 7807 standardında zenginleştirilmiş hata nesneleri, Bean Validation modelleri ve kurumsal hata kodları.</p>
+      </div>
+
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>RFC 7807 Alanı</th>
+              <th>Veri Tipi</th>
+              <th>Açıklama &amp; Kurumsal Standart</th>
+              <th>Örnek Değer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>type</code></td>
+              <td><code>URI</code></td>
+              <td>Hata türünü tanımlayan dokümantasyon URI bağlantısı.</td>
+              <td><code>https://api.enterprise.com/errors/validation-error</code></td>
+            </tr>
+            <tr>
+              <td><code>title</code></td>
+              <td><code>String</code></td>
+              <td>HTTP durumunun kısa, insan tarafından okunabilir başlığı.</td>
+              <td><code>"Validation Failed"</code></td>
+            </tr>
+            <tr>
+              <td><code>status</code></td>
+              <td><code>int</code></td>
+              <td>Kaynak sunucu tarafından verilen HTTP durum kodu.</td>
+              <td><code>400</code></td>
+            </tr>
+            <tr>
+              <td><code>detail</code></td>
+              <td><code>String</code></td>
+              <td>Bu özel hata oluşumunu açıklayan kullanıcı dostu mesaj.</td>
+              <td><code>"Input validation failed for one or more fields"</code></td>
+            </tr>
+            <tr>
+              <td><code>instance</code></td>
+              <td><code>URI</code></td>
+              <td>Hatanın gerçekleştiği tam API endpoint adresi.</td>
+              <td><code>"/api/v1/users"</code></td>
+            </tr>
+            <tr>
+              <td><code>errorCode</code> (Property)</td>
+              <td><code>String</code></td>
+              <td>Kurumsal hata kataloğu kodu (Frontend'in i18n çevirisi için).</td>
+              <td><code>"CORE-4001"</code></td>
+            </tr>
+            <tr>
+              <td><code>traceId</code> (Property)</td>
+              <td><code>String</code></td>
+              <td>APM ve dağıtık loglarda hatayı bulmayı sağlayan izleme ID'si.</td>
+              <td><code>"a1b2c3d4-e5f6-7890"</code></td>
+            </tr>
+            <tr>
+              <td><code>errors</code> (Property)</td>
+              <td><code>List&lt;ValidationError&gt;</code></td>
+              <td>Sadece 400 Bad Request durumlarında geçersiz form alanlarının listesi.</td>
+              <td><code>[{"field":"email", "message":"Email format is invalid"}]</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <!-- ValidationError.java -->
+        <div class="code-box">
+          <div class="code-topbar">
+            <div class="code-title">
+              <span class="code-badge">RECORD</span>
+              <span>ValidationError.java</span>
+            </div>
+            <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+          </div>
+          <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.exception;
+
+<span class="c-keyword">import</span> org.jspecify.annotations.Nullable;
+
+<span class="c-comment">/**
+ * Alan bazlı validasyon hatası ayrıntısı.
+ */</span>
+<span class="c-keyword">public record</span> <span class="c-type">ValidationError</span>(
+        <span class="c-type">String</span> field,
+        <span class="c-annotation">@Nullable</span> <span class="c-type">Object</span> rejectedValue,
+        <span class="c-type">String</span> message
+) {}</code></pre>
+        </div>
+
+        <!-- ErrorCode.java -->
+        <div class="code-box">
+          <div class="code-topbar">
+            <div class="code-title">
+              <span class="code-badge">ENUM</span>
+              <span>ErrorCode.java</span>
+            </div>
+            <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+          </div>
+          <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.exception;
+
+<span class="c-keyword">import</span> lombok.Getter;
+<span class="c-keyword">import</span> lombok.RequiredArgsConstructor;
+<span class="c-keyword">import</span> org.springframework.http.HttpStatus;
+
+<span class="c-annotation">@Getter</span>
+<span class="c-annotation">@RequiredArgsConstructor</span>
+<span class="c-keyword">public enum</span> <span class="c-type">ErrorCode</span> {
+    <span class="c-var">VALIDATION_FAILED</span>(<span class="c-string">"CORE-4001"</span>, <span class="c-type">HttpStatus</span>.<span class="c-var">BAD_REQUEST</span>, <span class="c-string">"Validation criteria not satisfied"</span>),
+    <span class="c-var">RESOURCE_NOT_FOUND</span>(<span class="c-string">"CORE-4004"</span>, <span class="c-type">HttpStatus</span>.<span class="c-var">NOT_FOUND</span>, <span class="c-string">"Requested resource does not exist"</span>),
+    <span class="c-var">RESOURCE_ALREADY_EXISTS</span>(<span class="c-string">"CORE-4009"</span>, <span class="c-type">HttpStatus</span>.<span class="c-var">CONFLICT</span>, <span class="c-string">"Resource conflict detected"</span>),
+    <span class="c-var">UNAUTHORIZED_ACCESS</span>(<span class="c-string">"AUTH-4001"</span>, <span class="c-type">HttpStatus</span>.<span class="c-var">UNAUTHORIZED</span>, <span class="c-string">"Authentication required or token invalid"</span>),
+    <span class="c-var">ACCESS_DENIED</span>(<span class="c-string">"AUTH-4003"</span>, <span class="c-type">HttpStatus</span>.<span class="c-var">FORBIDDEN</span>, <span class="c-string">"Insufficient privileges"</span>),
+    <span class="c-var">INTERNAL_SERVER_ERROR</span>(<span class="c-string">"CORE-5000"</span>, <span class="c-type">HttpStatus</span>.<span class="c-var">INTERNAL_SERVER_ERROR</span>, <span class="c-string">"Unexpected server error"</span>);
+
+    <span class="c-keyword">private final</span> <span class="c-type">String</span> code;
+    <span class="c-keyword">private final</span> <span class="c-type">HttpStatus</span> httpStatus;
+    <span class="c-keyword">private final</span> <span class="c-type">String</span> defaultMessage;
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 4: DAĞITIK İZLEME (TRACEID & MDC) -->
+    <section id="asama-4">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 4</div>
+        <h2 class="section-title">Dağıtık İzleme (TraceId &amp; MDC Filter)</h2>
+        <p class="section-desc">Gelen istekleri karşılayan, benzersiz izleme ID'sini oluşturan, loglara (MDC) ve HTTP Header'ına enjekte eden filtre.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-topbar">
+          <div class="code-title">
+            <span class="code-badge">FILTER</span>
+            <span>com.enterprise.common.filter.TraceIdFilter.java</span>
+          </div>
+          <button class="btn-copy" onclick="copyCode(this)"><span>Kodu Kopyala</span></button>
+        </div>
+        <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.filter;
+
+<span class="c-keyword">import</span> jakarta.servlet.FilterChain;
+<span class="c-keyword">import</span> jakarta.servlet.ServletException;
+<span class="c-keyword">import</span> jakarta.servlet.http.HttpServletRequest;
+<span class="c-keyword">import</span> jakarta.servlet.http.HttpServletResponse;
+<span class="c-keyword">import</span> org.slf4j.MDC;
+<span class="c-keyword">import</span> org.springframework.core.Ordered;
+<span class="c-keyword">import</span> org.springframework.core.annotation.Order;
+<span class="c-keyword">import</span> org.springframework.stereotype.Component;
+<span class="c-keyword">import</span> org.springframework.util.StringUtils;
+<span class="c-keyword">import</span> org.springframework.web.filter.OncePerRequestFilter;
+
+<span class="c-keyword">import</span> java.io.IOException;
+<span class="c-keyword">import</span> java.util.UUID;
+
+<span class="c-comment">/**
+ * En yüksek öncelikle çalışarak her HTTP isteğine benzersiz bir X-Trace-Id atar
+ * ve SLF4J MDC havuzuna yazar.
+ */</span>
+<span class="c-annotation">@Component</span>
+<span class="c-annotation">@Order</span>(Ordered.<span class="c-var">HIGHEST_PRECEDENCE</span>)
+<span class="c-keyword">public class</span> <span class="c-type">TraceIdFilter</span> <span class="c-keyword">extends</span> <span class="c-type">OncePerRequestFilter</span> {
+
+    <span class="c-keyword">public static final</span> <span class="c-type">String</span> <span class="c-var">TRACE_ID_HEADER</span> = <span class="c-string">"X-Trace-Id"</span>;
+    <span class="c-keyword">public static final</span> <span class="c-type">String</span> <span class="c-var">MDC_TRACE_ID_KEY</span> = <span class="c-string">"traceId"</span>;
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-keyword">protected void</span> <span class="c-method">doFilterInternal</span>(<span class="c-type">HttpServletRequest</span> request,
+                                    <span class="c-type">HttpServletResponse</span> response,
+                                    <span class="c-type">FilterChain</span> filterChain) <span class="c-keyword">throws</span> <span class="c-type">ServletException</span>, <span class="c-type">IOException</span> {
+        
+        <span class="c-comment">// 1. Varsa Gateway'den gelen trace ID'yi al, yoksa yeni üret</span>
+        <span class="c-type">String</span> traceId = request.<span class="c-method">getHeader</span>(<span class="c-var">TRACE_ID_HEADER</span>);
+        <span class="c-keyword">if</span> (!<span class="c-type">StringUtils</span>.<span class="c-method">hasText</span>(traceId)) {
+            traceId = <span class="c-type">UUID</span>.<span class="c-method">randomUUID</span>().<span class="c-method">toString</span>();
+        }
+
+        <span class="c-comment">// 2. Logback MDC havuzuna koy (tüm log satırlarında görünür)</span>
+        <span class="c-type">MDC</span>.<span class="c-method">put</span>(<span class="c-var">MDC_TRACE_ID_KEY</span>, traceId);
+
+        <span class="c-comment">// 3. İstemciye dönen HTTP Response Header'ına ekle</span>
+        response.<span class="c-method">setHeader</span>(<span class="c-var">TRACE_ID_HEADER</span>, traceId);
+
+        <span class="c-keyword">try</span> {
+            filterChain.<span class="c-method">doFilter</span>(request, response);
+        } <span class="c-keyword">finally</span> {
+            <span class="c-comment">// Thread havuzu kirlenmesini engellemek için thread bitiminde temizle</span>
+            <span class="c-type">MDC</span>.<span class="c-method">remove</span>(<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="callout callout-success">
+        <div class="callout-icon">📊</div>
+        <div>
+          <strong>Logback Desenine TraceId Ekleme:</strong><br>
+          <code>logback-spring.xml</code> veya <code>application.yml</code> içinde log formatınıza <code>%X{traceId}</code> ekleyerek her log satırının otomatik olarak izlenebilir olmasını sağlayabilirsiniz:<br>
+          <code>logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"</code>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 5: MERKEZİ İSTİSNA YAKALAMA (GLOBAL EXCEPTION HANDLER) -->
+    <section id="asama-5">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 5</div>
+        <h2 class="section-title">Merkezi İstisna Yakalama (GlobalExceptionHandler)</h2>
+        <p class="section-desc">Spring Boot 4.1.1 <code>ResponseEntityExceptionHandler</code> sınıfını genişleterek Bean Validation, Domain Exceptions, Conflict ve 500 hatalarını RFC 7807 sözleşmesine bağlar.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-topbar">
+          <div class="code-title">
+            <span class="code-badge">ADVICE</span>
+            <span>com.enterprise.common.exception.GlobalExceptionHandler.java</span>
+          </div>
+          <button class="btn-copy" onclick="copyCode(this)"><span>Kodu Kopyala</span></button>
+        </div>
+        <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.exception;
+
+<span class="c-keyword">import</span> com.enterprise.common.filter.TraceIdFilter;
+<span class="c-keyword">import</span> jakarta.servlet.http.HttpServletRequest;
+<span class="c-keyword">import</span> lombok.extern.slf4j.Slf4j;
+<span class="c-keyword">import</span> org.slf4j.MDC;
+<span class="c-keyword">import</span> org.springframework.dao.DataIntegrityViolationException;
+<span class="c-keyword">import</span> org.springframework.http.*;
+<span class="c-keyword">import</span> org.springframework.web.bind.MethodArgumentNotValidException;
+<span class="c-keyword">import</span> org.springframework.web.bind.annotation.ExceptionHandler;
+<span class="c-keyword">import</span> org.springframework.web.bind.annotation.RestControllerAdvice;
+<span class="c-keyword">import</span> org.springframework.web.context.request.ServletWebRequest;
+<span class="c-keyword">import</span> org.springframework.web.context.request.WebRequest;
+<span class="c-keyword">import</span> org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+<span class="c-keyword">import</span> java.net.URI;
+<span class="c-keyword">import</span> java.time.Instant;
+<span class="c-keyword">import</span> java.util.List;
+
+<span class="c-annotation">@Slf4j</span>
+<span class="c-annotation">@RestControllerAdvice</span>
+<span class="c-keyword">public class</span> <span class="c-type">GlobalExceptionHandler</span> <span class="c-keyword">extends</span> <span class="c-type">ResponseEntityExceptionHandler</span> {
+
+    <span class="c-keyword">private static final</span> <span class="c-type">String</span> <span class="c-var">TYPE_BASE</span> = <span class="c-string">"https://api.enterprise.com/errors/"</span>;
+
+    <span class="c-comment">/**
+     * 1. BEAN VALIDATION (@Valid, @NotNull, @Size vb.) HATALARINI YAKALAR -> HTTP 400
+     */</span>
+    <span class="c-annotation">@Override</span>
+    <span class="c-keyword">protected</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">Object</span>&gt; <span class="c-method">handleMethodArgumentNotValid</span>(
+            <span class="c-type">MethodArgumentNotValidException</span> ex,
+            <span class="c-type">HttpHeaders</span> headers,
+            <span class="c-type">HttpStatusCode</span> status,
+            <span class="c-type">WebRequest</span> request) {
+
+        <span class="c-type">String</span> path = <span class="c-method">getPath</span>(request);
+        <span class="c-type">String</span> traceId = <span class="c-method">getTraceId</span>();
+
+        <span class="c-type">List</span>&lt;<span class="c-type">ValidationError</span>&gt; validationErrors = ex.<span class="c-method">getBindingResult</span>().<span class="c-method">getFieldErrors</span>().<span class="c-method">stream</span>()
+                .<span class="c-method">map</span>(err -&gt; <span class="c-keyword">new</span> <span class="c-type">ValidationError</span>(err.<span class="c-method">getField</span>(), err.<span class="c-method">getRejectedValue</span>(), err.<span class="c-method">getDefaultMessage</span>()))
+                .<span class="c-method">toList</span>();
+
+        <span class="c-type">ProblemDetail</span> problemDetail = <span class="c-type">ProblemDetail</span>.<span class="c-method">forStatusAndDetail</span>(
+                <span class="c-type">HttpStatus</span>.<span class="c-var">BAD_REQUEST</span>, <span class="c-string">"Input validation failed for one or more fields"</span>
+        );
+        problemDetail.<span class="c-method">setTitle</span>(<span class="c-string">"Validation Failed"</span>);
+        problemDetail.<span class="c-method">setType</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(<span class="c-var">TYPE_BASE</span> + <span class="c-string">"validation-error"</span>));
+        problemDetail.<span class="c-method">setInstance</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(path));
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"errorCode"</span>, <span class="c-type">ErrorCode</span>.<span class="c-var">VALIDATION_FAILED</span>.<span class="c-method">getCode</span>());
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"errors"</span>, validationErrors);
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"traceId"</span>, traceId);
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"timestamp"</span>, <span class="c-type">Instant</span>.<span class="c-method">now</span>());
+
+        log.<span class="c-method">warn</span>(<span class="c-string">"[{}] Validation error at {}: {}"</span>, traceId, path, validationErrors);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">status</span>(<span class="c-type">HttpStatus</span>.<span class="c-var">BAD_REQUEST</span>).<span class="c-method">body</span>(problemDetail);
+    }
+
+    <span class="c-comment">/**
+     * 2. ÖZEL İŞ MANTIĞI VE DOMAIN İSTİSNALARI -> Dynamic Status (404, 400 vb.)
+     */</span>
+    <span class="c-annotation">@ExceptionHandler</span>(<span class="c-type">ApiException</span>.<span class="c-keyword">class</span>)
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ProblemDetail</span>&gt; <span class="c-method">handleApiException</span>(<span class="c-type">ApiException</span> ex, <span class="c-type">HttpServletRequest</span> request) {
+        <span class="c-type">String</span> traceId = <span class="c-method">getTraceId</span>();
+        <span class="c-type">String</span> path = request.<span class="c-method">getRequestURI</span>();
+
+        <span class="c-type">ProblemDetail</span> problemDetail = <span class="c-type">ProblemDetail</span>.<span class="c-method">forStatusAndDetail</span>(ex.<span class="c-method">getHttpStatus</span>(), ex.<span class="c-method">getMessage</span>());
+        problemDetail.<span class="c-method">setTitle</span>(ex.<span class="c-method">getErrorCode</span>().<span class="c-method">name</span>().<span class="c-method">replace</span>(<span class="c-string">'_'</span>, <span class="c-string">' '</span>));
+        problemDetail.<span class="c-method">setType</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(<span class="c-var">TYPE_BASE</span> + ex.<span class="c-method">getErrorCode</span>().<span class="c-method">getCode</span>().<span class="c-method">toLowerCase</span>()));
+        problemDetail.<span class="c-method">setInstance</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(path));
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"errorCode"</span>, ex.<span class="c-method">getErrorCode</span>().<span class="c-method">getCode</span>());
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"traceId"</span>, traceId);
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"timestamp"</span>, <span class="c-type">Instant</span>.<span class="c-method">now</span>());
+
+        log.<span class="c-method">warn</span>(<span class="c-string">"[{}] Business exception at {}: [{}] {}"</span>, traceId, path, ex.<span class="c-method">getErrorCode</span>().<span class="c-method">getCode</span>(), ex.<span class="c-method">getMessage</span>());
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">status</span>(ex.<span class="c-method">getHttpStatus</span>()).<span class="c-method">body</span>(problemDetail);
+    }
+
+    <span class="c-comment">/**
+     * 3. VERİTABANI KISITLAMA / UNIQUE CONSTRAINT İHLALLERİ -> HTTP 409 CONFLICT
+     */</span>
+    <span class="c-annotation">@ExceptionHandler</span>(<span class="c-type">DataIntegrityViolationException</span>.<span class="c-keyword">class</span>)
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ProblemDetail</span>&gt; <span class="c-method">handleDataIntegrity</span>(<span class="c-type">DataIntegrityViolationException</span> ex, <span class="c-type">HttpServletRequest</span> request) {
+        <span class="c-type">String</span> traceId = <span class="c-method">getTraceId</span>();
+        <span class="c-type">String</span> path = request.<span class="c-method">getRequestURI</span>();
+
+        <span class="c-type">ProblemDetail</span> problemDetail = <span class="c-type">ProblemDetail</span>.<span class="c-method">forStatusAndDetail</span>(
+                <span class="c-type">HttpStatus</span>.<span class="c-var">CONFLICT</span>, <span class="c-string">"Database constraint violation detected (e.g. duplicate key or foreign key conflict)"</span>
+        );
+        problemDetail.<span class="c-method">setTitle</span>(<span class="c-string">"Database Conflict"</span>);
+        problemDetail.<span class="c-method">setType</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(<span class="c-var">TYPE_BASE</span> + <span class="c-string">"data-conflict"</span>));
+        problemDetail.<span class="c-method">setInstance</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(path));
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"errorCode"</span>, <span class="c-type">ErrorCode</span>.<span class="c-var">RESOURCE_ALREADY_EXISTS</span>.<span class="c-method">getCode</span>());
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"traceId"</span>, traceId);
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"timestamp"</span>, <span class="c-type">Instant</span>.<span class="c-method">now</span>());
+
+        log.<span class="c-method">error</span>(<span class="c-string">"[{}] Data conflict at {}: {}"</span>, traceId, path, ex.<span class="c-method">getMostSpecificCause</span>().<span class="c-method">getMessage</span>());
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">status</span>(<span class="c-type">HttpStatus</span>.<span class="c-var">CONFLICT</span>).<span class="c-method">body</span>(problemDetail);
+    }
+
+    <span class="c-comment">/**
+     * 4. BEKLENMEYEN TÜM SİSTEM HATALARI (FALLBACK) -> HTTP 500 INTERNAL SERVER ERROR
+     */</span>
+    <span class="c-annotation">@ExceptionHandler</span>(<span class="c-type">Exception</span>.<span class="c-keyword">class</span>)
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ProblemDetail</span>&gt; <span class="c-method">handleGenericException</span>(<span class="c-type">Exception</span> ex, <span class="c-type">HttpServletRequest</span> request) {
+        <span class="c-type">String</span> traceId = <span class="c-method">getTraceId</span>();
+        <span class="c-type">String</span> path = request.<span class="c-method">getRequestURI</span>();
+
+        <span class="c-type">ProblemDetail</span> problemDetail = <span class="c-type">ProblemDetail</span>.<span class="c-method">forStatusAndDetail</span>(
+                <span class="c-type">HttpStatus</span>.<span class="c-var">INTERNAL_SERVER_ERROR</span>, <span class="c-string">"An unexpected error occurred. Please provide the traceId to support."</span>
+        );
+        problemDetail.<span class="c-method">setTitle</span>(<span class="c-string">"Internal Server Error"</span>);
+        problemDetail.<span class="c-method">setType</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(<span class="c-var">TYPE_BASE</span> + <span class="c-string">"internal-error"</span>));
+        problemDetail.<span class="c-method">setInstance</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(path));
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"errorCode"</span>, <span class="c-type">ErrorCode</span>.<span class="c-var">INTERNAL_SERVER_ERROR</span>.<span class="c-method">getCode</span>());
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"traceId"</span>, traceId);
+        problemDetail.<span class="c-method">setProperty</span>(<span class="c-string">"timestamp"</span>, <span class="c-type">Instant</span>.<span class="c-method">now</span>());
+
+        <span class="c-comment">// StackTrace SADECE loglara basılır; asla istemciye verilmez!</span>
+        log.<span class="c-method">error</span>(<span class="c-string">"[{}] Unhandled internal exception at {}: "</span>, traceId, path, ex);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">status</span>(<span class="c-type">HttpStatus</span>.<span class="c-var">INTERNAL_SERVER_ERROR</span>).<span class="c-method">body</span>(problemDetail);
+    }
+
+    <span class="c-keyword">private</span> <span class="c-type">String</span> <span class="c-method">getTraceId</span>() {
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">return</span> traceId != <span class="c-keyword">null</span> ? traceId : <span class="c-string">"N/A"</span>;
+    }
+
+    <span class="c-keyword">private</span> <span class="c-type">String</span> <span class="c-method">getPath</span>(<span class="c-type">WebRequest</span> request) {
+        <span class="c-keyword">if</span> (request <span class="c-keyword">instanceof</span> <span class="c-type">ServletWebRequest</span> swr) {
+            <span class="c-keyword">return</span> swr.<span class="c-method">getRequest</span>().<span class="c-method">getRequestURI</span>();
+        }
+        <span class="c-keyword">return</span> <span class="c-string">"/"</span>;
+    }
+}</code></pre>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 6: SPRING SECURITY FİLTRE HATALARI -->
+    <section id="asama-6">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 6</div>
+        <h2 class="section-title">Spring Security Filtre Seviyesi Hata Yönetimi</h2>
+        <p class="section-desc">Gelen istek henüz Controller veya DispatcherServlet'e ulaşmadan Security Filter Chain'de reddedildiğinde RFC 7807 sözleşmesini koruyan bileşenler.</p>
+      </div>
+
+      <div class="callout callout-warning">
+        <div class="callout-icon">⚠️</div>
+        <div>
+          <strong>Filtre Katmanı Neden ControllerAdvice'a Ulaşmaz?</strong><br>
+          Spring Security filtreleri (<code>JwtAuthenticationFilter</code>, <code>AuthorizationFilter</code>), Spring MVC'nin <code>DispatcherServlet</code> bileşeninden <u>önce</u> çalışır. Bu nedenle 401 Unauthorized veya 403 Forbidden durumlarında fırlatılan istisnalar <code>@RestControllerAdvice</code> tarafından yakalanamaz. Standart bir RFC 7807 yanıtı verebilmek için <code>AuthenticationEntryPoint</code> ve <code>AccessDeniedHandler</code> sınıfları doğrudan <code>SecurityFilterChain</code> konfigürasyonuna kaydedilmelidir.
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- CustomAuthenticationEntryPoint -->
+        <div class="code-box">
+          <div class="code-topbar">
+            <div class="code-title">
+              <span class="status-pill s-401">401 UNAUTHORIZED</span>
+              <span>CustomAuthenticationEntryPoint.java</span>
+            </div>
+            <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+          </div>
+          <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.security;
+
+<span class="c-keyword">import</span> com.enterprise.common.exception.ErrorCode;
+<span class="c-keyword">import</span> com.enterprise.common.filter.TraceIdFilter;
+<span class="c-keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;
+<span class="c-keyword">import</span> jakarta.servlet.http.HttpServletRequest;
+<span class="c-keyword">import</span> jakarta.servlet.http.HttpServletResponse;
+<span class="c-keyword">import</span> lombok.RequiredArgsConstructor;
+<span class="c-keyword">import</span> org.slf4j.MDC;
+<span class="c-keyword">import</span> org.springframework.http.HttpStatus;
+<span class="c-keyword">import</span> org.springframework.http.MediaType;
+<span class="c-keyword">import</span> org.springframework.http.ProblemDetail;
+<span class="c-keyword">import</span> org.springframework.security.core.AuthenticationException;
+<span class="c-keyword">import</span> org.springframework.security.web.AuthenticationEntryPoint;
+<span class="c-keyword">import</span> org.springframework.stereotype.Component;
+
+<span class="c-keyword">import</span> java.io.IOException;
+<span class="c-keyword">import</span> java.net.URI;
+<span class="c-keyword">import</span> java.time.Instant;
+
+<span class="c-annotation">@Component</span>
+<span class="c-annotation">@RequiredArgsConstructor</span>
+<span class="c-keyword">public class</span> <span class="c-type">CustomAuthenticationEntryPoint</span> <span class="c-keyword">implements</span> <span class="c-type">AuthenticationEntryPoint</span> {
+
+    <span class="c-keyword">private final</span> <span class="c-type">ObjectMapper</span> objectMapper;
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-keyword">public void</span> <span class="c-method">commence</span>(<span class="c-type">HttpServletRequest</span> request,
+                         <span class="c-type">HttpServletResponse</span> response,
+                         <span class="c-type">AuthenticationException</span> authException) <span class="c-keyword">throws</span> <span class="c-type">IOException</span> {
+
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">if</span> (traceId == <span class="c-keyword">null</span>) {
+            traceId = <span class="c-string">"AUTH-"</span> + <span class="c-type">System</span>.<span class="c-method">currentTimeMillis</span>();
+        }
+
+        <span class="c-type">ProblemDetail</span> problem = <span class="c-type">ProblemDetail</span>.<span class="c-method">forStatusAndDetail</span>(
+                <span class="c-type">HttpStatus</span>.<span class="c-var">UNAUTHORIZED</span>, <span class="c-string">"Authentication credentials are missing or invalid"</span>
+        );
+        problem.<span class="c-method">setTitle</span>(<span class="c-string">"Unauthorized"</span>);
+        problem.<span class="c-method">setType</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(<span class="c-string">"https://api.enterprise.com/errors/unauthorized"</span>));
+        problem.<span class="c-method">setInstance</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(request.<span class="c-method">getRequestURI</span>()));
+        problem.<span class="c-method">setProperty</span>(<span class="c-string">"errorCode"</span>, <span class="c-type">ErrorCode</span>.<span class="c-var">UNAUTHORIZED_ACCESS</span>.<span class="c-method">getCode</span>());
+        problem.<span class="c-method">setProperty</span>(<span class="c-string">"traceId"</span>, traceId);
+        problem.<span class="c-method">setProperty</span>(<span class="c-string">"timestamp"</span>, <span class="c-type">Instant</span>.<span class="c-method">now</span>());
+
+        response.<span class="c-method">setStatus</span>(<span class="c-type">HttpServletResponse</span>.<span class="c-var">SC_UNAUTHORIZED</span>);
+        response.<span class="c-method">setContentType</span>(<span class="c-type">MediaType</span>.<span class="c-var">APPLICATION_PROBLEM_JSON_VALUE</span>);
+        objectMapper.<span class="c-method">writeValue</span>(response.<span class="c-method">getOutputStream</span>(), problem);
+    }
+}</code></pre>
+        </div>
+
+        <!-- CustomAccessDeniedHandler -->
+        <div class="code-box">
+          <div class="code-topbar">
+            <div class="code-title">
+              <span class="status-pill s-403">403 FORBIDDEN</span>
+              <span>CustomAccessDeniedHandler.java</span>
+            </div>
+            <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+          </div>
+          <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.security;
+
+<span class="c-keyword">import</span> com.enterprise.common.exception.ErrorCode;
+<span class="c-keyword">import</span> com.enterprise.common.filter.TraceIdFilter;
+<span class="c-keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;
+<span class="c-keyword">import</span> jakarta.servlet.http.HttpServletRequest;
+<span class="c-keyword">import</span> jakarta.servlet.http.HttpServletResponse;
+<span class="c-keyword">import</span> lombok.RequiredArgsConstructor;
+<span class="c-keyword">import</span> org.slf4j.MDC;
+<span class="c-keyword">import</span> org.springframework.http.HttpStatus;
+<span class="c-keyword">import</span> org.springframework.http.MediaType;
+<span class="c-keyword">import</span> org.springframework.http.ProblemDetail;
+<span class="c-keyword">import</span> org.springframework.security.access.AccessDeniedException;
+<span class="c-keyword">import</span> org.springframework.security.web.access.AccessDeniedHandler;
+<span class="c-keyword">import</span> org.springframework.stereotype.Component;
+
+<span class="c-keyword">import</span> java.io.IOException;
+<span class="c-keyword">import</span> java.net.URI;
+<span class="c-keyword">import</span> java.time.Instant;
+
+<span class="c-annotation">@Component</span>
+<span class="c-annotation">@RequiredArgsConstructor</span>
+<span class="c-keyword">public class</span> <span class="c-type">CustomAccessDeniedHandler</span> <span class="c-keyword">implements</span> <span class="c-type">AccessDeniedHandler</span> {
+
+    <span class="c-keyword">private final</span> <span class="c-type">ObjectMapper</span> objectMapper;
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-keyword">public void</span> <span class="c-method">handle</span>(<span class="c-type">HttpServletRequest</span> request,
+                       <span class="c-type">HttpServletResponse</span> response,
+                       <span class="c-type">AccessDeniedException</span> accessDeniedException) <span class="c-keyword">throws</span> <span class="c-type">IOException</span> {
+
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">if</span> (traceId == <span class="c-keyword">null</span>) {
+            traceId = <span class="c-string">"DENIED-"</span> + <span class="c-type">System</span>.<span class="c-method">currentTimeMillis</span>();
+        }
+
+        <span class="c-type">ProblemDetail</span> problem = <span class="c-type">ProblemDetail</span>.<span class="c-method">forStatusAndDetail</span>(
+                <span class="c-type">HttpStatus</span>.<span class="c-var">FORBIDDEN</span>, <span class="c-string">"You do not possess the required permissions to access this resource"</span>
+        );
+        problem.<span class="c-method">setTitle</span>(<span class="c-string">"Forbidden"</span>);
+        problem.<span class="c-method">setType</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(<span class="c-string">"https://api.enterprise.com/errors/forbidden"</span>));
+        problem.<span class="c-method">setInstance</span>(<span class="c-type">URI</span>.<span class="c-method">create</span>(request.<span class="c-method">getRequestURI</span>()));
+        problem.<span class="c-method">setProperty</span>(<span class="c-string">"errorCode"</span>, <span class="c-type">ErrorCode</span>.<span class="c-var">ACCESS_DENIED</span>.<span class="c-method">getCode</span>());
+        problem.<span class="c-method">setProperty</span>(<span class="c-string">"traceId"</span>, traceId);
+        problem.<span class="c-method">setProperty</span>(<span class="c-string">"timestamp"</span>, <span class="c-type">Instant</span>.<span class="c-method">now</span>());
+
+        response.<span class="c-method">setStatus</span>(<span class="c-type">HttpServletResponse</span>.<span class="c-var">SC_FORBIDDEN</span>);
+        response.<span class="c-method">setContentType</span>(<span class="c-type">MediaType</span>.<span class="c-var">APPLICATION_PROBLEM_JSON_VALUE</span>);
+        objectMapper.<span class="c-method">writeValue</span>(response.<span class="c-method">getOutputStream</span>(), problem);
+    }
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 7: ÖRNEK CONTROLLER & CANLI SENARYOLAR -->
+    <section id="asama-7">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 7</div>
+        <h2 class="section-title">Örnek Controller &amp; Canlı Senaryolar (Cheat Sheet)</h2>
+        <p class="section-desc">Geliştiricinin referans alabileceği temiz bir Controller implementasyonu ve karşılaştırmalı canlı JSON hata çıktıları.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-topbar">
+          <div class="code-title">
+            <span class="code-badge">CONTROLLER</span>
+            <span>UserController.java (Referans Örnek)</span>
+          </div>
+          <button class="btn-copy" onclick="copyCode(this)"><span>Kodu Kopyala</span></button>
+        </div>
+        <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.coreapi.controller;
+
+<span class="c-keyword">import</span> com.enterprise.common.filter.TraceIdFilter;
+<span class="c-keyword">import</span> com.enterprise.common.response.ApiResponse;
+<span class="c-keyword">import</span> com.enterprise.common.response.PageResponse;
+<span class="c-keyword">import</span> jakarta.validation.Valid;
+<span class="c-keyword">import</span> lombok.RequiredArgsConstructor;
+<span class="c-keyword">import</span> org.slf4j.MDC;
+<span class="c-keyword">import</span> org.springframework.http.HttpStatus;
+<span class="c-keyword">import</span> org.springframework.http.ResponseEntity;
+<span class="c-keyword">import</span> org.springframework.web.bind.annotation.*;
+
+<span class="c-annotation">@RestController</span>
+<span class="c-annotation">@RequestMapping</span>(<span class="c-string">"/api/v1/users"</span>)
+<span class="c-annotation">@RequiredArgsConstructor</span>
+<span class="c-keyword">public class</span> <span class="c-type">UserController</span> {
+
+    <span class="c-comment">// 1. TEKİL BAŞARILI YANIT (HTTP 200)</span>
+    <span class="c-annotation">@GetMapping</span>(<span class="c-string">"/{id}"</span>)
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">UserDto</span>&gt;&gt; <span class="c-method">getUser</span>(<span class="c-annotation">@PathVariable</span> <span class="c-type">String</span> id) {
+        <span class="c-type">UserDto</span> user = userService.<span class="c-method">findById</span>(id); <span class="c-comment">// Bulunamazsa ResourceNotFoundException fırlatır</span>
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(user, traceId));
+    }
+
+    <span class="c-comment">// 2. OLUŞTURMA YANITI (HTTP 201) &amp; BEAN VALIDATION (@Valid)</span>
+    <span class="c-annotation">@PostMapping</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">UserDto</span>&gt;&gt; <span class="c-method">createUser</span>(<span class="c-annotation">@Valid</span> <span class="c-annotation">@RequestBody</span> <span class="c-type">CreateUserRequest</span> request) {
+        <span class="c-type">UserDto</span> created = userService.<span class="c-method">create</span>(request);
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">status</span>(<span class="c-type">HttpStatus</span>.<span class="c-var">CREATED</span>)
+                .<span class="c-method">body</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(created, <span class="c-string">"User created successfully"</span>, traceId));
+    }
+}</code></pre>
+      </div>
+
+      <!-- JSON Karşılaştırmalı Canlı Sekmeler -->
+      <div class="tab-container">
+        <div class="tab-header">
+          <button class="tab-btn active" onclick="switchCodeTab(this, 'tab-ex-400')">400 Validation Error</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-ex-404')">404 Resource Not Found</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-ex-409')">409 Conflict</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-ex-401')">401 Unauthorized</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-ex-500')">500 Server Error</button>
+        </div>
+
+        <div id="tab-ex-400" class="tab-content active">
+          <div class="code-box">
+            <pre class="code-content"><code>{
+  <span class="c-string">"type"</span>: <span class="c-string">"https://api.enterprise.com/errors/validation-error"</span>,
+  <span class="c-string">"title"</span>: <span class="c-string">"Validation Failed"</span>,
+  <span class="c-string">"status"</span>: <span class="c-num">400</span>,
+  <span class="c-string">"detail"</span>: <span class="c-string">"Input validation failed for one or more fields"</span>,
+  <span class="c-string">"instance"</span>: <span class="c-string">"/api/v1/users"</span>,
+  <span class="c-string">"errorCode"</span>: <span class="c-string">"CORE-4001"</span>,
+  <span class="c-string">"errors"</span>: [
+    {
+      <span class="c-string">"field"</span>: <span class="c-string">"email"</span>,
+      <span class="c-string">"rejectedValue"</span>: <span class="c-string">"not-an-email"</span>,
+      <span class="c-string">"message"</span>: <span class="c-string">"Must be a well-formed email address"</span>
+    },
+    {
+      <span class="c-string">"field"</span>: <span class="c-string">"password"</span>,
+      <span class="c-string">"rejectedValue"</span>: <span class="c-string">"123"</span>,
+      <span class="c-string">"message"</span>: <span class="c-string">"Password must be at least 8 characters long"</span>
+    }
+  ],
+  <span class="c-string">"traceId"</span>: <span class="c-string">"e6b05df8-9273-455a-bcf0-781e9b25121b"</span>,
+  <span class="c-string">"timestamp"</span>: <span class="c-string">"2026-09-30T19:58:32.411Z"</span>
+}</code></pre>
+          </div>
+        </div>
+
+        <div id="tab-ex-404" class="tab-content">
+          <div class="code-box">
+            <pre class="code-content"><code>{
+  <span class="c-string">"type"</span>: <span class="c-string">"https://api.enterprise.com/errors/core-4004"</span>,
+  <span class="c-string">"title"</span>: <span class="c-string">"RESOURCE NOT FOUND"</span>,
+  <span class="c-string">"status"</span>: <span class="c-num">404</span>,
+  <span class="c-string">"detail"</span>: <span class="c-string">"User with id 'usr_999' not found"</span>,
+  <span class="c-string">"instance"</span>: <span class="c-string">"/api/v1/users/usr_999"</span>,
+  <span class="c-string">"errorCode"</span>: <span class="c-string">"CORE-4004"</span>,
+  <span class="c-string">"traceId"</span>: <span class="c-string">"7a3c2e11-4890-48ef-8e54-52d3a669bc01"</span>,
+  <span class="c-string">"timestamp"</span>: <span class="c-string">"2026-09-30T19:59:10.052Z"</span>
+}</code></pre>
+          </div>
+        </div>
+
+        <div id="tab-ex-409" class="tab-content">
+          <div class="code-box">
+            <pre class="code-content"><code>{
+  <span class="c-string">"type"</span>: <span class="c-string">"https://api.enterprise.com/errors/data-conflict"</span>,
+  <span class="c-string">"title"</span>: <span class="c-string">"Database Conflict"</span>,
+  <span class="c-string">"status"</span>: <span class="c-num">409</span>,
+  <span class="c-string">"detail"</span>: <span class="c-string">"Database constraint violation detected (e.g. duplicate key or foreign key conflict)"</span>,
+  <span class="c-string">"instance"</span>: <span class="c-string">"/api/v1/users"</span>,
+  <span class="c-string">"errorCode"</span>: <span class="c-string">"CORE-4009"</span>,
+  <span class="c-string">"traceId"</span>: <span class="c-string">"3f81e194-27ac-4a37-975f-2c0989f81df6"</span>,
+  <span class="c-string">"timestamp"</span>: <span class="c-string">"2026-09-30T20:00:01.884Z"</span>
+}</code></pre>
+          </div>
+        </div>
+
+        <div id="tab-ex-401" class="tab-content">
+          <div class="code-box">
+            <pre class="code-content"><code>{
+  <span class="c-string">"type"</span>: <span class="c-string">"https://api.enterprise.com/errors/unauthorized"</span>,
+  <span class="c-string">"title"</span>: <span class="c-string">"Unauthorized"</span>,
+  <span class="c-string">"status"</span>: <span class="c-num">401</span>,
+  <span class="c-string">"detail"</span>: <span class="c-string">"Authentication credentials are missing or invalid"</span>,
+  <span class="c-string">"instance"</span>: <span class="c-string">"/api/v1/secure-data"</span>,
+  <span class="c-string">"errorCode"</span>: <span class="c-string">"AUTH-4001"</span>,
+  <span class="c-string">"traceId"</span>: <span class="c-string">"AUTH-1764518400000"</span>,
+  <span class="c-string">"timestamp"</span>: <span class="c-string">"2026-09-30T20:01:14.331Z"</span>
+}</code></pre>
+          </div>
+        </div>
+
+        <div id="tab-ex-500" class="tab-content">
+          <div class="code-box">
+            <pre class="code-content"><code>{
+  <span class="c-string">"type"</span>: <span class="c-string">"https://api.enterprise.com/errors/internal-error"</span>,
+  <span class="c-string">"title"</span>: <span class="c-string">"Internal Server Error"</span>,
+  <span class="c-string">"status"</span>: <span class="c-num">500</span>,
+  <span class="c-string">"detail"</span>: <span class="c-string">"An unexpected error occurred. Please provide the traceId to support."</span>,
+  <span class="c-string">"instance"</span>: <span class="c-string">"/api/v1/payment"</span>,
+  <span class="c-string">"errorCode"</span>: <span class="c-string">"CORE-5000"</span>,
+  <span class="c-string">"traceId"</span>: <span class="c-string">"98b1a45c-01f3-4e89-bd61-344ea1d7b309"</span>,
+  <span class="c-string">"timestamp"</span>: <span class="c-string">"2026-09-30T20:02:45.918Z"</span>
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 8: MİMARİ KONTROL LİSTESİ -->
+    <section id="asama-8">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 8</div>
+        <h2 class="section-title">Kurumsal API Kontrol Listesi (Developer Checklist)</h2>
+        <p class="section-desc">Entity ve iş mantığı kodlamasına başlamadan önce tamamlanması gereken API altyapı adımları.</p>
+      </div>
+
+      <ul class="checklist">
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>Ortak Paket Ayrımı:</strong> <code>ApiResponse</code>, <code>PageResponse</code> ve <code>GlobalExceptionHandler</code> bileşenleri mikroservis içinde <code>com.enterprise.common</code> veya paylaşılan bir core kütüphane altında toplandı mı?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>TraceId Filtresi En Yüksek Öncelikte mi?</strong> <code>TraceIdFilter</code> sınıfı <code>@Order(Ordered.HIGHEST_PRECEDENCE)</code> ile işaretlendi mi ve MDC'ye yazılan değer thread bitiminde temizleniyor mu?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>Security Filtre Entegrasyonu Yapıldı mı?</strong> <code>CustomAuthenticationEntryPoint</code> ve <code>CustomAccessDeniedHandler</code> bileşenleri <code>SecurityFilterChain</code> konfigürasyonundaki <code>http.exceptionHandling(...)</code> bloğuna bağlandı mı?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>Sıfır StackTrace Sızıntısı:</strong> Beklenmeyen 500 hatalarında istemciye generic açıklama ve <code>traceId</code> dönülürken; gerçek hata ayrıntısı sunucu loglarına <code>log.error("...", ex)</code> ile kaydediliyor mu?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>Null Değer İzolasyonu:</strong> <code>ApiResponse</code> üzerinde <code>@JsonInclude(JsonInclude.Include.NON_NULL)</code> tanımlı mı? (Null alanlar JSON çıktısını şişirmemeli).
+          </div>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script>
+    // Sekme Değiştirici
+    function switchCodeTab(btn, tabId) {
+      const container = btn.closest('.tab-container');
+      container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      btn.classList.add('active');
+      const target = container.querySelector('#' + tabId);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    // Kod Kopyalama Fonksiyonu
+    function copyCode(btn) {
+      const box = btn.closest('.code-box');
+      const code = box.querySelector('pre code').innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '<span>✓ Kopyalandı!</span>';
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = originalText;
+        }, 2000);
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+      });
+    }
+
+    // Sidebar Scroll Spy (Aktif Sekme Takibi)
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section');
+      const navLinks = document.querySelectorAll('nav.nav-menu a');
+
+      let currentSection = '';
+      sections.forEach(section => {
+        const top = section.offsetTop - 120;
+        if (window.scrollY >= top) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + currentSection) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

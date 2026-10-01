@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurumsal Git, GitHub Governance & Auto-Merge CI/CD Kılavuzu</title>
+  <meta name="description" content="Spring Boot mikroservisleri için kurumsal Git çift dal mimarisi, GitHub repository governance, lisanslama, Conventional Commits ve GitHub Actions otomatik merge CI/CD yaşam döngüsü rehberi.">
+  <style>
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", Consolas, Menlo, Monaco, monospace;
+      
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-hover: #172238;
+      --panel-subtle: #0f172a;
+      --border: #1f2937;
+      --border-focus: #06b6d4;
+      --code-bg: #040813;
+      
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --dim: #64748b;
+      
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.18);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.18);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.18);
+      --red: #ef4444;
+      --purple: #8b5cf6;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --panel-hover: #f1f5f9;
+      --panel-subtle: #f8fafc;
+      --border: #e2e8f0;
+      --border-focus: #0891b2;
+      --code-bg: #0f172a;
+      
+      --text: #0f172a;
+      --muted: #475569;
+      --dim: #94a3b8;
+      
+      --cyan: #0891b2;
+      --cyan-glow: rgba(8, 145, 178, 0.12);
+      --green: #059669;
+      --green-glow: rgba(5, 150, 105, 0.12);
+      --amber: #d97706;
+      --amber-glow: rgba(217, 119, 6, 0.12);
+      --red: #dc2626;
+      --purple: #7c3aed;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 15px; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      padding: 2rem 1.25rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--panel-subtle);
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--cyan) 0%, #3b82f6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    aside nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      flex: 1;
+    }
+
+    aside nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: var(--transition);
+      border-left: 3px solid transparent;
+    }
+
+    aside nav a:hover {
+      color: var(--text);
+      background: var(--panel-hover);
+      border-left-color: var(--cyan);
+    }
+
+    aside nav a.active {
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      border-left-color: var(--cyan);
+      font-weight: 600;
+    }
+
+    .nav-badge-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    .sidebar-footer {
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-icon-sm {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-icon-sm:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 3rem 4rem;
+      max-width: 1180px;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header.hero {
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--cyan-glow);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: var(--cyan);
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-theme="light"] header h1 {
+      background: linear-gradient(135deg, #0f172a 40%, #0891b2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p.lead {
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.6;
+      max-width: 860px;
+      margin-bottom: 1.5rem;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(6, 182, 212, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .badge-green {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--amber);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    /* Section Styling */
+    section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+      border-top: 1px solid var(--border);
+      padding-top: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.85rem;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: #000;
+      font-size: 0.8rem;
+      font-weight: 800;
+      margin-right: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 1.75rem 0 0.65rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    p, li {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.65;
+      margin-bottom: 0.75rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    li { margin-bottom: 0.4rem; }
+
+    strong { color: var(--text); }
+    code.inline-code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      color: var(--cyan);
+    }
+
+    /* Callout Boxes */
+    .callout {
+      background: rgba(245, 158, 11, 0.08);
+      border-left: 4px solid var(--amber);
+      padding: 1.1rem 1.3rem;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin: 1.25rem 0;
+    }
+
+    .callout-info {
+      background: rgba(6, 182, 212, 0.08);
+      border-left: 4px solid var(--cyan);
+    }
+
+    .callout-danger {
+      background: rgba(239, 68, 68, 0.08);
+      border-left: 4px solid var(--red);
+    }
+
+    .callout-success {
+      background: rgba(16, 185, 129, 0.08);
+      border-left: 4px solid var(--green);
+    }
+
+    .callout p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+
+    /* Code Box Component */
+    .code-box {
+      position: relative;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin: 1.25rem 0;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .code-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel);
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .code-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dot-group {
+      display: flex;
+      gap: 5px;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.3rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: var(--font-sans);
+    }
+
+    .copy-btn:hover {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: #000;
+    }
+
+    .copy-btn.copied {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e5e7eb;
+    }
+
+    /* Tab Switcher */
+    .tabs-wrap {
+      margin: 1.25rem 0;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.4rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      padding: 0.3rem 0.5rem 0;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+
+    .tab-trigger {
+      padding: 0.6rem 1rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-sans);
+    }
+
+    .tab-trigger:hover { color: var(--text); }
+    .tab-trigger.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+      background: rgba(6, 182, 212, 0.08);
+      border-radius: 4px 4px 0 0;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .tabs-wrap .code-box {
+      margin-top: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-top: none;
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      margin: 1.5rem 0;
+      background: var(--panel);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.05);
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--panel-hover); }
+
+    /* Flow Step Card */
+    .flow-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .flow-card:hover {
+      border-color: rgba(6, 182, 212, 0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+
+    .flow-badge {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--green);
+      color: #ffffff;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Print Styles */
+    @media print {
+      aside, .copy-btn, .btn-icon-sm, .toast { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+      main { padding: 0 !important; max-width: 100% !important; }
+      .code-box, .table-container, .flow-card { border: 1px solid #ccc !important; box-shadow: none !important; }
+      pre { color: #111 !important; }
+    }
+
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; }
+      main { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand-box">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg>
+      </div>
+      <div>
+        <div class="brand-title">Git &amp; DevOps Kit</div>
+        <div class="brand-sub">Enterprise Governance</div>
+      </div>
+    </div>
+
+    <nav>
+      <a href="#s1-gitignore" class="active">
+        <span class="nav-badge-num">1</span>
+        <span>.gitignore &amp; İzolasyon</span>
+      </a>
+      <a href="#s2-docs">
+        <span class="nav-badge-num">2</span>
+        <span>Lokal README &amp; Lisans</span>
+      </a>
+      <a href="#s3-local-branches">
+        <span class="nav-badge-num">3</span>
+        <span>Çift Dal (main/development)</span>
+      </a>
+      <a href="#s4-remote-gov">
+        <span class="nav-badge-num">4</span>
+        <span>Remote Repo &amp; Governance</span>
+      </a>
+      <a href="#s5-auto-merge">
+        <span class="nav-badge-num">5</span>
+        <span>CI Kalite Kapısı (Quality Gate)</span>
+      </a>
+      <a href="#s6-commits">
+        <span class="nav-badge-num">6</span>
+        <span>Conventional Commits</span>
+      </a>
+      <a href="#s7-workflow">
+        <span class="nav-badge-num">7</span>
+        <span>Sürüm &amp; Günlük Akış</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span style="font-size: 0.75rem; color: var(--dim);">Principal DevEx Standard</span>
+      <button class="btn-icon-sm" id="themeToggle" title="Tema Değiştir">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <header class="hero">
+      <div class="hero-eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        Enterprise Governance &amp; CI/CD Standard Blueprint
+      </div>
+      <h1>Kurumsal Git &amp; GitHub Governance Yaşam Döngüsü</h1>
+      <p class="lead">
+        Lokalde ayağa kaldırılmış Spring Boot REST API projelerinin repo yönetişimi, lisanslanması, çift dal (Model B: development &amp; main) sürüm mimarisi, branch protection kuralları ve CI testleri ile korunan <strong>Kurumsal Kalite Kapısı (Quality Gate)</strong> standart kılavuzu.
+      </p>
+
+      <div class="badges-row">
+        <span class="badge">Java 21 / Spring Boot 4.1.1</span>
+        <span class="badge badge-green">Model B: Release Flow</span>
+        <span class="badge badge-green">Branch Protection Active</span>
+        <span class="badge badge-amber">Dual-Branch Architecture</span>
+        <span class="badge">CI/CD Quality Gate</span>
+      </div>
+    </header>
+
+    <!-- ADIM 1: .GITIGNORE & İZOLASYON -->
+    <section id="s1-gitignore">
+      <h2><span class="step-num">1</span> Proje Temizliği &amp; İzolasyon (.gitignore ve .gitattributes)</h2>
+      <p>
+        Depoya kesinlikle dahil edilmemesi gereken Maven derleme çıktıları (<code>target/</code>), IDE konfigürasyonları (<code>.idea/</code>, <code>.vscode/</code>), ortam değişkenleri ve Docker veritabanı kalıntıları için proje kökünde aşağıdaki dosyaları oluşturun.
+      </p>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-gitignore')">.gitignore (Tam Şablon)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-gitattributes')">.gitattributes (Cross-Platform Satır Sonu)</button>
+        </div>
+
+        <div id="tab-gitignore" class="tab-content active">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>.gitignore</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeGitignore', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeGitignore"># =====================================================================
+# Maven Build Artifacts
+# =====================================================================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# =====================================================================
+# IDEs & Editor Configuration
+# =====================================================================
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+*.DS_Store
+Thumbs.db
+
+# =====================================================================
+# Environment Variables & Secrets
+# =====================================================================
+.env
+.env.*
+*.pem
+*.key
+*.p12
+
+# =====================================================================
+# Database Volumes & Local Storage
+# =====================================================================
+postgres_data/
+data/
+*.log
+
+# =====================================================================
+# Local Developer Profiles & Docker Overrides
+# =====================================================================
+# Geliştiricinin kendi yerel profili (ana application.yml depoda kalır!)
+src/main/resources/application-local.yml
+src/main/resources/application-secret.yml
+application-local.yml
+application-secret.yml
+
+# Geliştiricinin yerel Docker port/volume ezme ayarları (compose.yaml depoda kalır!)
+docker-compose.override.yml
+compose.override.yaml</code></pre>
+          </div>
+        </div>
+
+        <div id="tab-gitattributes" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>.gitattributes</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeGitattributes', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeGitattributes"># Windows (CRLF) ve Linux/macOS (LF) uyuşmazlığını önlemek için:
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+mvnw text eol=lf
+mvnw.cmd text eol=crlf</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-info" style="margin-top: 1rem;">
+        <p>
+          <strong>Mimari Kural (application.yml ve compose.yaml Neden Ignore Edilmez?):</strong><br>
+          Ana <code>application.yml</code>, <code>Dockerfile</code> ve <code>compose.yaml</code> dosyaları projenin ayrılmaz mimari parçalarıdır ve CI/CD pipeline'ında testlerin çalışabilmesi için <u>kesinlikle depoya gönderilmelidir</u>. Yerel geliştirmede geliştiricinin sıfır konfigürasyonla anında çalışabilmesi ("Works out of the box") için <code>${POSTGRES_PASSWORD:postgres}</code> gibi yerel fallback sözdizimleri kullanılır; canlı/üretim ortamlarında bu değerler Kubernetes veya CI/CD ortam değişkenleri tarafından otomatik olarak ezilir. Yalnızca geliştiricinin kendi makinesine özel ayarları (<code>application-local.yml</code>), yerel şifreleri (<code>.env</code>) ve yerel port çakışmalarını çözen <code>compose.override.yaml</code> dosyası <code>.gitignore</code> ile izole edilir.
+        </p>
+      </div>
+    </section>
+
+    <!-- ADIM 2: LOKAL README & LİSANS -->
+    <section id="s2-docs">
+      <h2><span class="step-num">2</span> Kurumsal Dokümantasyon (Lokal README.md &amp; LICENSE)</h2>
+      
+      <div class="callout callout-danger">
+        <p>
+          <strong>Kritik Uyarı (Zero Unrelated Histories Garantisi):</strong><br>
+          GitHub web arayüzünde yeni bir repo açarken <em>"Add a README file"</em> veya <em>"Choose a license"</em> kutucukları işaretlenirse, GitHub remote tarafta bağımsız bir başlangıç commit'i oluşturur. Bu durum, lokaldeki projenizi push ederken meşhur <code>fatal: refusing to merge unrelated histories</code> hatasına ve branch çakışmalarına yol açar.
+          <br><strong>Kural:</strong> <code>README.md</code> ve <code>LICENSE</code> dosyaları <u>her zaman lokalde, ilk commit atılmadan önce</u> oluşturulmalıdır.
+        </p>
+      </div>
+
+      <h3>A. Standart Kurumsal README.md Şablonu</h3>
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title"><span>README.md</span></div>
+          <button class="copy-btn" onclick="copySnippet('codeReadme', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeReadme"># Core REST API Service
+
+[![Java 21](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://openjdk.org/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1%20GA-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%2B-blue.svg)](https://www.postgresql.org/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+Kurumsal ölçekte, yüksek performanslı ve gözlemlenebilir Spring Boot REST API mikroservisi.
+
+---
+
+## 🛠 Teknoloji Yığını & Standartlar
+- **Çalışma Zamanı (Runtime):** Java 21 LTS (Virtual Threads - Project Loom)
+- **Framework:** Spring Boot 4.1.1 GA (Spring Framework 7 &amp; Jakarta EE 11)
+- **Veritabanı &amp; ORM:** PostgreSQL 16+ &amp; Spring Data JPA (Hibernate)
+- **Veritabanı Sürümleme:** Flyway Migration (`V1__init_schema.sql`)
+- **API Dokümantasyonu:** Springdoc OpenAPI v3 (Swagger UI)
+- **Gözlemlenebilirlik:** Spring Boot Actuator &amp; Micrometer Prometheus
+
+---
+
+## 🚀 Yerel Kurulum &amp; İlk Çalıştırma
+
+### 1. Ön Gereksinimler
+- JDK 21 LTS kurulu olmalı (`java -version`)
+- Docker Desktop / Docker Engine çalışır durumda olmalı
+
+### 2. Ortam Değişkenlerini Hazırlama (.env)
+```bash
+# .env.example şablonundan yerel .env dosyasını oluşturun:
+# Windows CMD:
+copy .env.example .env
+
+# Linux / macOS / Git Bash:
+cp .env.example .env
+```
+
+### 3. Veritabanını Başlatma
+```bash
+# Docker Compose ile PostgreSQL 16 konteynerini başlatın:
+docker compose up -d
+```
+
+### 4. Uygulamayı Çalıştırma
+```bash
+# Linux / macOS / Git Bash:
+./mvnw spring-boot:run
+
+# Windows CMD / PowerShell:
+mvnw.cmd spring-boot:run
+```
+
+---
+
+## 🔍 Canlı Doğrulama &amp; Endpoint Bağlantıları
+- **Swagger UI v3 (Interaktif API):** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **OpenAPI 3.1 Spec (JSON):** [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+- **Actuator Health Probe:** [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
+- **Prometheus Metrikleri:** [http://localhost:8080/actuator/prometheus](http://localhost:8080/actuator/prometheus)
+
+---
+
+## 🧪 Testleri Çalıştırma
+Testler gerçek PostgreSQL üzerinde Testcontainers kullanılarak koşulur:
+```bash
+./mvnw clean verify
+```</code></pre>
+      </div>
+
+      <h3>B. Kurumsal Lisans Seçim Rehberi (MIT vs. Apache 2.0)</h3>
+      
+      <div class="callout callout-info" style="margin: 1rem 0;">
+        <p>
+          <strong>Dosya Türü, Formatı ve İsimlendirme Standardı:</strong><br>
+          Lisans dosyası proje kök dizininde (<code>./</code>) <strong>herhangi bir dosya uzantısı olmadan (Plain Text - No Extension)</strong> oluşturulmalıdır.<br>
+          • <strong>Standart Dosya Adı:</strong> <code>LICENSE</code> (Tümüyle büyük harf ve <u>uzantısız</u>)<br>
+          • <strong>Kullanılmaması Gereken İsimler:</strong> <code>LICENSE.txt</code>, <code>LICENSE.md</code> veya küçük harfli <code>license</code>.<br>
+          • <strong>Neden Uzantısız?:</strong> GitHub, GitLab ve açık kaynak lisans analiz motoru (<em>Licensee</em>), reponun kök dizinindeki uzantısız <code>LICENSE</code> dosyasını doğrudan ayrıştırır. Bu sayede GitHub reponuzun sağ üst panelinde otomatik olarak <code>MIT License</code> veya <code>Apache-2.0</code> rozeti görüntülenir.
+        </p>
+      </div>
+
+      <p style="margin-bottom: 0.75rem;">Terminalden proje kök dizininde uzantısız boş <code>LICENSE</code> dosyasını oluşturmak için:</p>
+      <div class="code-box" style="margin-bottom: 1.5rem;">
+        <div class="code-bar">
+          <div class="code-bar-title"><span>Dosya Oluşturma Komutları (Proje Kök Dizininde)</span></div>
+          <button class="copy-btn" onclick="copySnippet('codeLicenseCreate', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeLicenseCreate"># Windows CMD:
+type nul > LICENSE
+
+# Windows PowerShell:
+New-Item -Path "LICENSE" -ItemType File
+
+# Linux / macOS / Git Bash:
+touch LICENSE</code></pre>
+      </div>
+
+      <p>Projenizin dağıtım modeline ve kurumsal politikalarınıza uygun lisans içeriğini seçerek oluşturduğunuz <code>LICENSE</code> dosyasının içerisine yapıştırın:</p>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-mit')">MIT License (Önerilen - Maksimum Esneklik)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-apache')">Apache 2.0 (Patent Hakları Korumalı)</button>
+        </div>
+
+        <div id="tab-mit" class="tab-content active">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title"><span>LICENSE (MIT)</span></div>
+              <button class="copy-btn" onclick="copySnippet('codeMit', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeMit">MIT License
+
+Copyright (c) 2026 Enterprise Architecture Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</code></pre>
+          </div>
+        </div>
+
+        <div id="tab-apache" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title"><span>LICENSE (Apache 2.0)</span></div>
+              <button class="copy-btn" onclick="copySnippet('codeApache', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeApache">                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+1. Definitions.
+   "License" shall mean the terms and conditions for use, reproduction,
+   and distribution as defined by Sections 1 through 9 of this document.
+
+Copyright 2026 Enterprise Architecture Team
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADIM 3: LOKAL GIT BAŞLATMA & ÇİFT DAL -->
+    <section id="s3-local-branches">
+      <h2><span class="step-num">3</span> Lokal Git Başlatma &amp; Çift Dal Mimarisi (`main` &amp; `development`)</h2>
+      <p>
+        Kurumsal mimaride doğrudan <code>main</code> dalına kod yazılmaz. <code>main</code> daima üretime hazır, mühürlü kararlı daldır. Geliştirme akışı <code>development</code> dalında sürdürülür.
+      </p>
+
+      <div class="flow-card">
+        <h4 style="margin-bottom: 0.5rem; color: var(--cyan);">Çift Dal (Model B - Enterprise Release Flow) Yaşam Döngüsü:</h4>
+        <p>1. <code>main</code> dalı ilklendirilir ve ilk temiz iskelet commit'i buraya kaydedilir.</p>
+        <p>2. Hemen ardından aktif geliştirme dalı olan <code>development</code> dalı türetilir.</p>
+        <p>3. Geliştirici tüm geliştirmelerini <code>development</code> dalında sürdürür ve buraya push eder. Her push/PR anında CI Kalite Kapısı (Quality Gate) tetiklenir.</p>
+        <p>4. Sprint veya sürüm teslimatında <code>development</code> dalından <code>main</code> dalına <strong>Pull Request (PR)</strong> açılır. Review ve onayların ardından <code>main</code>e birleştirilir ve sürüm etiketi (Git Release Tag: <code>v1.0.0</code>) basılır.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title"><span>Terminal (Lokal İlklendirme Komutları)</span></div>
+          <button class="copy-btn" onclick="copySnippet('codeGitInit', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeGitInit"># 1. Depoyu varsayılan 'main' dalı ile ilklendirin:
+git init -b main
+
+# 2. Hazırlanan .gitignore, README.md, LICENSE ve proje kodlarını ekleyin:
+git add .
+
+# 3. İlk temiz iskelet commit'ini atın (Conventional Commit):
+git commit -m "chore: initial enterprise scaffolding with Spring Boot, Docker and PostgreSQL"
+
+# 4. Geliştirme dalını (development) oluşturup bu dala geçin:
+git checkout -b development
+
+# 5. Mevcut durumu teyit edin (development üzerinde olmalısınız):
+git status</code></pre>
+      </div>
+    </section>
+
+    <!-- ADIM 4: REMOTE REPO & GITHUB GOVERNANCE -->
+    <section id="s4-remote-gov">
+      <h2><span class="step-num">4</span> Remote Repo Oluşturma &amp; GitHub Governance Ayarları</h2>
+      <p>
+        GitHub üzerinde remote deponun oluşturulması ve kurumsal yönetişim (governance) güvenlik politikalarının yapılandırılması.
+      </p>
+
+      <h3>A. Boş Remote Repo Açma (2 Yöntem)</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Yöntem</th>
+              <th>Uygulama Komutu / Yönergesi</th>
+              <th>Önemli Güvenlik Kuralı</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. GitHub CLI (Önerilen)</strong></td>
+              <td><code>gh repo create core-api-service --private --source=. --remote=origin</code></td>
+              <td>Lokaldeki dosyaları korur, remote'ta bağımsız commit oluşturmaz.</td>
+            </tr>
+            <tr>
+              <td><strong>2. GitHub Web Arayüzü</strong></td>
+              <td>github.com &gt; <em>New Repository</em> &gt; Repo Name: <code>core-api-service</code></td>
+              <td><strong>TÜM KUTUCUKLAR BOŞ KALMALI:</strong> README, .gitignore ve License kutucuklarını kesinlikle İŞARETLEMEYİN!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title"><span>Dalları Remote Depoya İlk Gönderim (Push)</span></div>
+          <button class="copy-btn" onclick="copySnippet('codePushInitial', this)">Kopyala</button>
+        </div>
+        <pre><code id="codePushInitial"># Remote origin bağlantısını ekleyin (Web arayüzünden açtıysanız):
+git remote add origin https://github.com/&lt;ORGANIZATION-OR-USERNAME&gt;/core-api-service.git
+
+# Önce 'main' dalını remote'a gönderin:
+git push -u origin main
+
+# Ardından aktif geliştirme dalı olan 'development' dalını gönderin:
+git push -u origin development</code></pre>
+      </div>
+
+      <h3>B. GitHub Repository Settings (Yönetişim Konfigürasyonu)</h3>
+      <p>GitHub üzerinde <strong>Settings &gt; General</strong> sekmesine gidin ve şu 3 ayarı aktifleştirin:</p>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Ayar Adı</th>
+              <th>Seçim / Durum</th>
+              <th>Gerekçe</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Allow auto-merge</strong></td>
+              <td><span class="badge badge-green">AKTİF (Checked)</span></td>
+              <td>CI testleri yeşil yandığında PR'ın otomatik merge olabilmesi için zorunludur.</td>
+            </tr>
+            <tr>
+              <td><strong>Automatically delete head branches</strong></td>
+              <td><span class="badge badge-green">AKTİF (Checked)</span></td>
+              <td>Feature branch'ler merge edildikten sonra deponun temiz kalmasını sağlar.</td>
+            </tr>
+            <tr>
+              <td><strong>Allow Squash merging</strong></td>
+              <td><span class="badge badge-green">AKTİF (Checked)</span></td>
+              <td>Temiz bir Git geçmişi ve atomic commit takibi için gereklidir.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>C. Branch Protection Rules (`main` Dalını Kilitleme)</h3>
+      <p>
+        GitHub'da <strong>Settings &gt; Branches &gt; Add branch protection rule</strong> seçeneğine tıklayın:
+      </p>
+      <ul>
+        <li><strong>Branch name pattern:</strong> <code>main</code></li>
+        <li>✅ <strong>Require a pull request before merging:</strong> Doğrudan <code>main</code>e push atılmasını engeller.</li>
+        <li>✅ <strong>Require status checks to pass before merging:</strong> CI pipeline'ı yeşil yanmadan merge edilmesini yasaklar. Arama kutusuna <code>build-and-verify</code> yazıp seçin.</li>
+        <li>✅ <strong>Do not allow bypassing the above settings:</strong> Yönetici (Admin) kullanıcıların dahi bu kuralı delmesini engeller.</li>
+      </ul>
+    </section>
+
+    <!-- ADIM 5: CI/CD KALİTE KAPISI (QUALITY GATE) -->
+    <section id="s5-auto-merge">
+      <h2><span class="step-num">5</span> Kurumsal CI/CD Kalite Kapısı (Enterprise Quality Gate - `ci.yml`)</h2>
+      <p>
+        Modern kurumsal mimarilerde CI botunun komut satırından doğrudan <code>main</code> dalına <code>git push</code> veya <code>fast-forward</code> yapması <strong>anti-pattern</strong> olarak kabul edilir. Araya giren hotfix veya squash PR'lar dalların çatallanmasına (<em>diverging branches, exit code 128</em>) yol açar ve kurumsal onay mekanizmalarını deler.
+      </p>
+      
+      <div class="callout callout-info" style="margin: 1rem 0;">
+        <p>
+          <strong>Model B Mimarisi &amp; En Az Yetki Prensibi (Least Privilege):</strong><br>
+          GitHub Actions bir kod taşıyıcısı değil, <strong>ödünsüz bir Kalite Kapısıdır (Quality Gate)</strong>. Geliştirici <code>development</code> dalına push attığında veya <code>main</code> dalına PR açtığında pipeline tetiklenir; Java 21, Testcontainers (PostgreSQL) ve Docker Multi-Stage build adımlarını doğrular. Repo izinleri güvenli <code>contents: read</code> seviyesinde tutulur.
+        </p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title">
+            <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+            <span>.github/workflows/ci.yml</span>
+          </div>
+          <button class="copy-btn" onclick="copySnippet('codeCiYml', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeCiYml">name: Enterprise Spring Boot CI (Quality Gate)
+
+on:
+  push:
+    branches: [ development, main ]
+  pull_request:
+    branches: [ development, main ]
+
+permissions:
+  contents: read
+
+jobs:
+  # =====================================================================
+  # Quality Gate: Build, Unit &amp; Testcontainers Integration Verification
+  # =====================================================================
+  build-and-verify:
+    name: Build &amp; Test (Java 21 + Testcontainers + Docker)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 LTS (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Maven Build &amp; Integration Tests (PostgreSQL Testcontainers)
+        run: |
+          chmod +x ./mvnw
+          ./mvnw clean verify -B
+
+      - name: Verify Multi-Stage Dockerfile Build
+        run: |
+          docker build -t core-api-service:ci-test .</code></pre>
+      </div>
+    </section>
+
+    <!-- ADIM 6: CONVENTIONAL COMMITS -->
+    <section id="s6-commits">
+      <h2><span class="step-num">6</span> Conventional Commits Standartları</h2>
+      <p>
+        Depodaki tüm commit mesajları otomatik sürümleme (semantic release) ve okunabilirlik için <code>&lt;tip&gt;(&lt;kapsam&gt;): &lt;açıklama&gt;</code> formatında olmalıdır.
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tip</th>
+              <th>Kullanım Amacı</th>
+              <th>Örnek Commit Mesajı</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>feat</code></td>
+              <td>Kullanıcıya veya sisteme yeni bir özellik/endpoint ekleme</td>
+              <td><code>feat(user): add register user endpoint with jakarta validation</code></td>
+            </tr>
+            <tr>
+              <td><code>fix</code></td>
+              <td>Bir hatayı (bug) düzeltme</td>
+              <td><code>fix(auth): resolve JWT expiration timestamp timezone bug</code></td>
+            </tr>
+            <tr>
+              <td><code>test</code></td>
+              <td>Birim veya Testcontainers entegrasyon testi ekleme/güncelleme</td>
+              <td><code>test(order): add Testcontainers postgresql repository tests</code></td>
+            </tr>
+            <tr>
+              <td><code>ci</code></td>
+              <td>GitHub Actions veya CI/CD scriptlerinde yapılan değişiklikler</td>
+              <td><code>ci(workflow): enable maven dependency caching on ci.yml</code></td>
+            </tr>
+            <tr>
+              <td><code>chore</code></td>
+              <td>İş mantığını etkilemeyen rutin işler (.gitignore, bağımlılık sürümü)</td>
+              <td><code>chore(deps): bump spring-boot.version to 4.1.1 GA</code></td>
+            </tr>
+            <tr>
+              <td><code>refactor</code></td>
+              <td>Davranışı değiştirmeden kod yapısını iyileştirme</td>
+              <td><code>refactor(service): extract payment validation to strategy pattern</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ADIM 7: GELİŞTİRİCİ GÜNLÜK İŞ AKIŞI -->
+    <!-- ADIM 7: GELİŞTİRİCİ GÜNLÜK İŞ AKIŞI & RELEASE FLOW -->
+    <section id="s7-workflow">
+      <h2><span class="step-num">7</span> Geliştirici Günlük İş Akışı &amp; Sürüm Yayınlama (Model B)</h2>
+      <p>
+        Model B mimarisinde geliştiricinin günlük akışı <code>development</code> dalında hız kazanırken, <code>main</code> dalı kontrollü sürüm onaylarıyla korunur:
+      </p>
+
+      <div class="flow-card">
+        <h4 style="color: var(--cyan); margin-bottom: 0.5rem;">Adım 1: Geliştirmeye Başlarken</h4>
+        <div class="code-box" style="margin: 0.5rem 0 0;">
+          <pre><code># Daima en güncel development dalını çekin:
+git checkout development
+git pull origin development</code></pre>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <h4 style="color: var(--green); margin-bottom: 0.5rem;">Adım 2: Kodlama &amp; Yerel Doğrulama</h4>
+        <p>Kodunuzu geliştirin ve commit atmadan önce testlerin lokalde geçtiğini teyit edin:</p>
+        <div class="code-box" style="margin: 0.5rem 0 0;">
+          <pre><code># Testleri ve Testcontainers entegrasyonunu koşun:
+./mvnw clean test</code></pre>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <h4 style="color: var(--amber); margin-bottom: 0.5rem;">Adım 3: Commit &amp; Push (development)</h4>
+        <div class="code-box" style="margin: 0.5rem 0 0;">
+          <pre><code>git add .
+git commit -m "feat(product): implement pagination for product list query"
+git push origin development</code></pre>
+        </div>
+      </div>
+
+      <div class="flow-card" style="border-left: 4px solid var(--cyan);">
+        <h4 style="color: var(--cyan); margin-bottom: 0.5rem;">Adım 4: Otomatik CI Kalite Kapısı (GitHub Actions)</h4>
+        <p>
+          Push işleminden sonra GitHub Actions Kalite Kapısı otomatik devreye girer. Java 21, PostgreSQL Testcontainers ve Docker Multi-Stage build adımlarını doğrular. Testler yeşil (PASS) olmadan sonraki adıma geçilemez.
+        </p>
+      </div>
+
+      <div class="flow-card" style="border-left: 4px solid var(--green);">
+        <h4 style="color: var(--green); margin-bottom: 0.5rem;">Adım 5: Sürüm Yayınlama &amp; Production Dağıtımı (Release PR &amp; Tag)</h4>
+        <p>
+          Sprint veya özellik paketi tamamlandığında GitHub arayüzünden <code>development</code> &rarr; <code>main</code> yönünde <strong>Release Pull Request</strong> açılır. Kalite kontrolleri ve kod inceleme (Code Review) onaylandıktan sonra PR <em>Squash and merge</em> veya <em>Merge commit</em> ile <code>main</code>e aktarılır ve sürüm etiketi (Git Tag) basılır:
+        </p>
+        <div class="code-box" style="margin: 0.5rem 0 0;">
+          <pre><code># main dalını güncelleyin ve resmi sürüm etiketini yayınlayın:
+git checkout main
+git pull origin main
+git tag -a v1.0.0 -m "release: v1.0.0 core REST API enterprise release"
+git push origin v1.0.0</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg">Panoya kopyalandı!</span>
+  </div>
+
+  <script>
+    // Copy to Clipboard Utility
+    function copySnippet(elementId, btn) {
+      const el = document.getElementById(elementId);
+      const textToCopy = el.innerText || el.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast('Panoya başarıyla kopyalandı!');
+        if (btn) {
+          const originalText = btn.innerText;
+          btn.classList.add('copied');
+          btn.innerText = 'Kopyalandı!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerText = originalText;
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // Tab Switcher
+    function switchTab(evt, tabId) {
+      const container = evt.currentTarget.closest('.tabs-wrap');
+      const tabs = container.querySelectorAll('.tab-content');
+      const btns = container.querySelectorAll('.tab-trigger');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      btns.forEach(btn => btn.classList.remove('active'));
+
+      container.querySelector('#' + tabId).classList.add('active');
+      evt.currentTarget.classList.add('active');
+    }
+
+    // Theme Toggle
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const htmlElem = document.documentElement;
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('gd_theme') || 'dark';
+      htmlElem.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = htmlElem.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      htmlElem.setAttribute('data-theme', next);
+      localStorage.setItem('gd_theme', next);
+      updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (theme === 'dark') {
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      } else {
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      }
+    }
+
+    themeToggleBtn.addEventListener('click', toggleTheme);
+    initTheme();
+
+    // Scrollspy Navigation
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section');
+      const navLinks = document.querySelectorAll('aside nav a');
+      let currentSectionId = '';
+
+      sections.forEach(section => {
+        const top = section.offsetTop - 120;
+        if (window.scrollY >= top) {
+          currentSectionId = section.getAttribute('id');
+        }
+      });
+
+      if (currentSectionId) {
+        navLinks.forEach(link => {
+          if (link.getAttribute('href') === '#' + currentSectionId) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

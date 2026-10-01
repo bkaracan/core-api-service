@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Boot 4.1.1 DTO &amp; MapStruct Standartları</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-alt: #161f30;
+      --panel-card: #1e293b;
+      --border: #1f2937;
+      --border-light: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
+      --code-bg: #030712;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1120;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.75rem 0.5rem 0.25rem;
+    }
+
+    nav.nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+
+    nav.nav-menu a:hover {
+      color: #fff;
+      background: var(--panel-alt);
+    }
+
+    nav.nav-menu a.active {
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      font-weight: 600;
+      border-left: 3px solid var(--cyan);
+    }
+
+    .nav-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--panel);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    nav.nav-menu a.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 2.5rem 3.5rem;
+      max-width: 1200px;
+      overflow-y: auto;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(168, 85, 247, 0.04) 50%, rgba(9, 13, 22, 0) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 12px;
+      padding: 2rem 2.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero-tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 600;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .hero-tag.cyan { color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .hero-tag.green { color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+    .hero-tag.purple { color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    .hero-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 860px;
+      line-height: 1.6;
+    }
+
+    /* Section Structure */
+    section {
+      margin-bottom: 3.5rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-head {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.3rem;
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-top: 0.4rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-light);
+    }
+
+    .card.accent-cyan { border-top: 3px solid var(--cyan); }
+    .card.accent-green { border-top: 3px solid var(--green); }
+    .card.accent-amber { border-top: 3px solid var(--amber); }
+    .card.accent-rose { border-top: 3px solid var(--rose); }
+    .card.accent-purple { border-top: 3px solid var(--purple); }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-text {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .card-text ul {
+      margin-left: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .card-text li {
+      margin-bottom: 0.35rem;
+    }
+
+    /* Architecture Diagram Box */
+    .diagram-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #38bdf8;
+    }
+
+    /* Code Blocks */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1.2rem;
+      background: #0d131f;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-file {
+      font-size: 0.82rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .code-lang-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn-copy:hover {
+      background: var(--panel-alt);
+      color: #fff;
+      border-color: var(--border-light);
+    }
+
+    .btn-copy.copied {
+      background: var(--green-glow);
+      color: var(--green);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    pre {
+      padding: 1.2rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+    }
+
+    /* Syntax Highlighting Classes */
+    .c-keyword { color: #f43f5e; font-weight: 600; }
+    .c-type { color: #38bdf8; }
+    .c-annotation { color: #eab308; }
+    .c-string { color: #a3e635; }
+    .c-comment { color: #64748b; font-style: italic; }
+    .c-method { color: #c084fc; }
+    .c-var { color: #e2e8f0; }
+
+    /* Comparison Grids */
+    .comp-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .comp-col {
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+
+    .comp-col.wrong {
+      border-top: 3px solid var(--rose);
+      background: linear-gradient(180deg, rgba(244, 63, 94, 0.03) 0%, rgba(17, 24, 39, 1) 100%);
+    }
+
+    .comp-col.right {
+      border-top: 3px solid var(--green);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.03) 0%, rgba(17, 24, 39, 1) 100%);
+    }
+
+    .comp-header {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .comp-col.wrong .comp-header { color: var(--rose); }
+    .comp-col.right .comp-header { color: var(--green); }
+
+    .comp-note {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 1rem 1.25rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+
+    .checklist-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: var(--green-glow);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--green);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .checklist-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      text-transform: uppercase;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* Tables */
+    .table-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      text-align: left;
+    }
+
+    th {
+      background: #0d131f;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0.85rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.85rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.84em;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #38bdf8;
+    }
+
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; }
+      main { padding: 1.5rem; }
+      .grid-2, .grid-3, .comp-box { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ASIDE / SIDEBAR -->
+  <aside>
+    <div class="brand-box">
+      <div class="brand-badge">ARCH-SPEC 2026.1</div>
+      <div class="brand-title">DTO &amp; MapStruct Standartları</div>
+      <div class="brand-subtitle">Spring Boot 4.1.1 &bull; Java 21 Records</div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Kılavuz Menüsü</div>
+      <a href="#asama-1" class="active"><span class="nav-num">1</span> Mimari İlkeler &amp; Kurallar</a>
+      <a href="#asama-2"><span class="nav-num">2</span> Maven pom.xml Yapılandırması</a>
+      <a href="#asama-3"><span class="nav-num">3</span> Request Record Sözleşmeleri</a>
+      <a href="#asama-4"><span class="nav-num">4</span> Response Record Sözleşmeleri</a>
+      <a href="#asama-5"><span class="nav-num">5</span> MapStruct Mapper Mimarisi</a>
+      <a href="#asama-6"><span class="nav-num">6</span> Service &amp; Controller Entegrasyonu</a>
+      <a href="#asama-7"><span class="nav-num">7</span> Anti-Pattern Karşılaştırmaları</a>
+      <a href="#asama-8"><span class="nav-num">8</span> Mimari Kontrol Listesi</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+      <div class="hero-tags">
+        <span class="hero-tag cyan">Java 21 LTS Record</span>
+        <span class="hero-tag green">MapStruct 1.6.3</span>
+        <span class="hero-tag purple">Jakarta Validation</span>
+        <span class="hero-tag cyan">Zero Entity Leakage</span>
+        <span class="hero-tag green">Fail-Fast Architecture</span>
+      </div>
+      <h1 class="hero-title">Spring Boot 4.1.1 DTO &amp; MapStruct Dönüşüm Standartları</h1>
+      <p class="hero-desc">
+        Gevşek, mutable ve Lombok anotasyon kalabalığına boğulmuş sınıf tabanlı DTO'lar yerine Java 21'in doğal değişmezlik (immutability) ve bellek optimizasyonu sunan <code>record</code> yapılarını; Controller sınırında fail-fast Jakarta Bean Validation disiplinini ve derleme zamanında tip güvenli kod üreten MapStruct mimarisini standarda bağlayan kurumsal geliştirici kılavuzu.
+      </p>
+    </div>
+
+    <!-- AŞAMA 1: MİMARİ İLKELER -->
+    <section id="asama-1">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 1</div>
+        <h2 class="section-title">Mimari İlkeler &amp; Tavizsiz Kurallar</h2>
+        <p class="section-desc">Veri bütünlüğünü, güvenliğini ve tip güvenliğini korumak için belirlenen 4 temel kural.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card accent-cyan">
+          <div class="card-title">1. Java 21 `record` Zorunluluğu</div>
+          <div class="card-text">
+            Tüm Request (<code>*Request</code>) ve Response (<code>*Response</code>) nesneleri istisnasız <strong>Java 21 <code>record</code></strong> olarak tanımlanmalıdır.
+            <ul>
+              <li>Sınıf (class) tabanlı DTO'lar ve setter metodları kesinlikle yasaktır.</li>
+              <li>JVM seviyesinde doğal immutability ve thread-safety garantisi sunar.</li>
+              <li>Otomatik <code>equals()</code>, <code>hashCode()</code> ve <code>toString()</code> üretir.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card accent-rose">
+          <div class="card-title">2. Sıfır Entity Sızıntısı (Zero Entity Exposure)</div>
+          <div class="card-text">
+            JPA Entity modelleri asla Controller katmanına sızdırılamaz.
+            <ul>
+              <li>Entity'ler asla <code>@RequestBody</code> veya <code>@ResponseBody</code> olarak kullanılamaz.</li>
+              <li>Dönüşümler yalnızca Service katmanında MapStruct ile yürütülür.</li>
+              <li>Şifre hash'leri, veritabanı ID'leri veya iç alanlar dış dünyaya sızdırılmaz.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card accent-green">
+          <div class="card-title">3. Fail-Fast Validation &amp; Compact Constructor</div>
+          <div class="card-text">
+            Tüm giriş doğrulama kuralları Controller sınırında kesilir.
+            <ul>
+              <li><code>@NotBlank</code>, <code>@Size</code>, <code>@Positive</code> vb. Request record bileşenlerinde tanımlanır.</li>
+              <li>Controller'da <code>@Valid</code> ile otomatik tetiklenir (400 Bad Request).</li>
+              <li>Çapraz parametre kontrolleri record'un <strong>Compact Constructor</strong> bloğunda handle edilir.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card accent-purple">
+          <div class="card-title">4. Compile-Time MapStruct Sözleşmesi</div>
+          <div class="card-text">
+            Runtime reflection yapan kütüphaneler (ModelMapper, BeanUtils) yasaktır.
+            <ul>
+              <li>MapStruct derleme zamanında saf Java byte-code üretir (sıfır runtime ek yükü).</li>
+              <li><code>unmappedTargetPolicy = ReportingPolicy.ERROR</code> ile unutulan alanlar derleme anında yakalanır.</li>
+              <li>Kısmi güncellemeler için <code>@MappingTarget</code> ve <code>IGNORE</code> stratejisi uygulanır.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Veri Akış Şeması -->
+      <div class="diagram-box">
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ KATMANLAR ARASI VERİ AKIŞI VE DTO İZOLASYON MODELİ                                    │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+       [ HTTP İstemcisi / Frontend / Mobil ]
+                      │
+                      ▼ JSON Payload (CreateProductRequest)
+       ┌─────────────────────────────────────────────────────────┐
+       │ CONTROLLER KATMANI (HTTP Protokol Sınırı)               │
+       │ - @PostMapping                                          │
+       │ - @Valid @RequestBody CreateProductRequest request      │
+       │ - Validasyon başarısızsa RFC 7807 (400 Bad Request)     │
+       └────────────────────────────┬────────────────────────────┘
+                                    │ (Saf Java 21 Record DTO)
+                                    ▼
+       ┌─────────────────────────────────────────────────────────┐
+       │ SERVICE KATMANI (Saf Domain & İş Mantığı)               │
+       │ 1. productMapper.toEntity(request) [MapStruct]          │
+       │ 2. productRepository.save(entity)                       │
+       │ 3. return productMapper.toResponse(savedProduct)        │
+       └────────────────────────────┬────────────────────────────┘
+                                    │ (Saf Java 21 Record DTO: ProductResponse)
+                                    ▼
+       ┌─────────────────────────────────────────────────────────┐
+       │ CONTROLLER KATMANI (Zarflama & HTTP Yanıtı)             │
+       │ - ApiResponse.success(response, traceId)                │
+       │ - return ResponseEntity.status(CREATED).body(apiResp)   │
+       └─────────────────────────────────────────────────────────┘
+      </div>
+    </section>
+
+    <!-- AŞAMA 2: MAVEN POM.XML YAPILANDIRMASI -->
+    <section id="asama-2">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 2</div>
+        <h2 class="section-title">Maven pom.xml Yapılandırması</h2>
+        <p class="section-desc">MapStruct ve Lombok derleme zamanı işlemcilerinin (annotation processor) çakışmasız çalışması için kesin yapılandırma.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">pom.xml <span class="code-lang-badge">XML</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-pom')">Kopyala</button>
+        </div>
+        <pre><code id="c-pom">&lt;<span class="c-keyword">properties</span>&gt;
+    &lt;<span class="c-keyword">java.version</span>&gt;21&lt;/<span class="c-keyword">java.version</span>&gt;
+    &lt;<span class="c-keyword">org.mapstruct.version</span>&gt;1.6.3&lt;/<span class="c-keyword">org.mapstruct.version</span>&gt;
+    &lt;<span class="c-keyword">lombok-mapstruct-binding.version</span>&gt;0.2.0&lt;/<span class="c-keyword">lombok-mapstruct-binding.version</span>&gt;
+&lt;/<span class="c-keyword">properties</span>&gt;
+
+&lt;<span class="c-keyword">dependencies</span>&gt;
+    &lt;!-- MapStruct Core --&gt;
+    &lt;<span class="c-keyword">dependency</span>&gt;
+        &lt;<span class="c-keyword">groupId</span>&gt;org.mapstruct&lt;/<span class="c-keyword">groupId</span>&gt;
+        &lt;<span class="c-keyword">artifactId</span>&gt;mapstruct&lt;/<span class="c-keyword">artifactId</span>&gt;
+        &lt;<span class="c-keyword">version</span>&gt;${org.mapstruct.version}&lt;/<span class="c-keyword">version</span>&gt;
+    &lt;/<span class="c-keyword">dependency</span>&gt;
+
+    &lt;!-- Jakarta Bean Validation --&gt;
+    &lt;<span class="c-keyword">dependency</span>&gt;
+        &lt;<span class="c-keyword">groupId</span>&gt;org.springframework.boot&lt;/<span class="c-keyword">groupId</span>&gt;
+        &lt;<span class="c-keyword">artifactId</span>&gt;spring-boot-starter-validation&lt;/<span class="c-keyword">artifactId</span>&gt;
+    &lt;/<span class="c-keyword">dependency</span>&gt;
+&lt;/<span class="c-keyword">dependencies</span>&gt;
+
+&lt;<span class="c-keyword">build</span>&gt;
+    &lt;<span class="c-keyword">plugins</span>&gt;
+        &lt;<span class="c-keyword">plugin</span>&gt;
+            &lt;<span class="c-keyword">groupId</span>&gt;org.apache.maven.plugins&lt;/<span class="c-keyword">groupId</span>&gt;
+            &lt;<span class="c-keyword">artifactId</span>&gt;maven-compiler-plugin&lt;/<span class="c-keyword">artifactId</span>&gt;
+            &lt;<span class="c-keyword">version</span>&gt;3.13.0&lt;/<span class="c-keyword">version</span>&gt;
+            &lt;<span class="c-keyword">configuration</span>&gt;
+                &lt;<span class="c-keyword">source</span>&gt;21&lt;/<span class="c-keyword">source</span>&gt;
+                &lt;<span class="c-keyword">target</span>&gt;21&lt;/<span class="c-keyword">target</span>&gt;
+                &lt;<span class="c-keyword">parameters</span>&gt;true&lt;/<span class="c-keyword">parameters</span>&gt;
+                &lt;<span class="c-keyword">annotationProcessorPaths</span>&gt;
+                    &lt;!-- 1. Lombok Processor --&gt;
+                    &lt;<span class="c-keyword">path</span>&gt;
+                        &lt;<span class="c-keyword">groupId</span>&gt;org.projectlombok&lt;/<span class="c-keyword">groupId</span>&gt;
+                        &lt;<span class="c-keyword">artifactId</span>&gt;lombok&lt;/<span class="c-keyword">artifactId</span>&gt;
+                        &lt;<span class="c-keyword">version</span>&gt;${lombok.version}&lt;/<span class="c-keyword">version</span>&gt;
+                    &lt;/<span class="c-keyword">path</span>&gt;
+                    &lt;!-- 2. Lombok-MapStruct Köprüsü (Sıralama kritiktir) --&gt;
+                    &lt;<span class="c-keyword">path</span>&gt;
+                        &lt;<span class="c-keyword">groupId</span>&gt;org.projectlombok&lt;/<span class="c-keyword">groupId</span>&gt;
+                        &lt;<span class="c-keyword">artifactId</span>&gt;lombok-mapstruct-binding&lt;/<span class="c-keyword">artifactId</span>&gt;
+                        &lt;<span class="c-keyword">version</span>&gt;${lombok-mapstruct-binding.version}&lt;/<span class="c-keyword">version</span>&gt;
+                    &lt;/<span class="c-keyword">path</span>&gt;
+                    &lt;!-- 3. MapStruct Processor --&gt;
+                    &lt;<span class="c-keyword">path</span>&gt;
+                        &lt;<span class="c-keyword">groupId</span>&gt;org.mapstruct&lt;/<span class="c-keyword">groupId</span>&gt;
+                        &lt;<span class="c-keyword">artifactId</span>&gt;mapstruct-processor&lt;/<span class="c-keyword">artifactId</span>&gt;
+                        &lt;<span class="c-keyword">version</span>&gt;${org.mapstruct.version}&lt;/<span class="c-keyword">version</span>&gt;
+                    &lt;/<span class="c-keyword">path</span>&gt;
+                &lt;/<span class="c-keyword">annotationProcessorPaths</span>&gt;
+                &lt;<span class="c-keyword">compilerArgs</span>&gt;
+                    &lt;<span class="c-keyword">compilerArg</span>&gt;-Amapstruct.defaultComponentModel=spring&lt;/<span class="c-keyword">compilerArg</span>&gt;
+                    &lt;<span class="c-keyword">compilerArg</span>&gt;-Amapstruct.unmappedTargetPolicy=ERROR&lt;/<span class="c-keyword">compilerArg</span>&gt;
+                &lt;/<span class="c-keyword">compilerArgs</span>&gt;
+            &lt;/<span class="c-keyword">configuration</span>&gt;
+        &lt;/<span class="c-keyword">plugin</span>&gt;
+    &lt;/<span class="c-keyword">plugins</span>&gt;
+&lt;/<span class="c-keyword">build</span>&gt;</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 3: REQUEST RECORD SÖZLEŞMELERİ -->
+    <section id="asama-3">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 3</div>
+        <h2 class="section-title">Request DTO Sözleşmeleri (Records)</h2>
+        <p class="section-desc">Jakarta Bean Validation anotasyonları ve Compact Constructor ile çapraz alan kural kontrolleri.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">CreateProductRequest.java <span class="code-lang-badge">Java 21 Record</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-createreq')">Kopyala</button>
+        </div>
+        <pre><code id="c-createreq"><span class="c-keyword">package</span> com.enterprise.coreapi.dto.request;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> jakarta.validation.constraints.DecimalMin;
+<span class="c-keyword">import</span> jakarta.validation.constraints.NotBlank;
+<span class="c-keyword">import</span> jakarta.validation.constraints.NotNull;
+<span class="c-keyword">import</span> jakarta.validation.constraints.Size;
+<span class="c-keyword">import</span> org.jspecify.annotations.Nullable;
+
+<span class="c-keyword">import</span> java.math.BigDecimal;
+<span class="c-keyword">import</span> java.time.LocalDate;
+
+<span class="c-annotation">@Schema</span>(description = <span class="c-string">"Yeni ürün oluşturma istek sözleşmesi"</span>)
+<span class="c-keyword">public record</span> <span class="c-type">CreateProductRequest</span>(
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün adı"</span>, example = <span class="c-string">"MacBook Pro 16"</span>, requiredMode = Schema.RequiredMode.REQUIRED)
+        <span class="c-annotation">@NotBlank</span>(message = <span class="c-string">"Ürün adı boş bırakılamaz"</span>)
+        <span class="c-annotation">@Size</span>(min = 2, max = 100, message = <span class="c-string">"Ürün adı 2 ile 100 karakter arasında olmalıdır"</span>)
+        <span class="c-type">String</span> name,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün SKU kodu"</span>, example = <span class="c-string">"PRD-MBP16-001"</span>, requiredMode = Schema.RequiredMode.REQUIRED)
+        <span class="c-annotation">@NotBlank</span>(message = <span class="c-string">"SKU kodu zorunludur"</span>)
+        <span class="c-annotation">@Size</span>(min = 3, max = 30, message = <span class="c-string">"SKU kodu 3 ile 30 karakter arasında olmalıdır"</span>)
+        <span class="c-type">String</span> sku,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Birim fiyat"</span>, example = <span class="c-string">"74999.99"</span>, requiredMode = Schema.RequiredMode.REQUIRED)
+        <span class="c-annotation">@NotNull</span>(message = <span class="c-string">"Fiyat bilgisi zorunludur"</span>)
+        <span class="c-annotation">@DecimalMin</span>(value = <span class="c-string">"0.01"</span>, message = <span class="c-string">"Fiyat sıfırdan büyük olmalıdır"</span>)
+        <span class="c-type">BigDecimal</span> price,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Kategori ID"</span>, example = <span class="c-string">"10"</span>)
+        <span class="c-annotation">@NotNull</span>(message = <span class="c-string">"Kategori referansı zorunludur"</span>)
+        <span class="c-type">Long</span> categoryId,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Kampanya başlangıç tarihi"</span>, example = <span class="c-string">"2026-10-01"</span>)
+        <span class="c-annotation">@Nullable</span>
+        <span class="c-type">LocalDate</span> campaignStartDate,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Kampanya bitiş tarihi"</span>, example = <span class="c-string">"2026-10-15"</span>)
+        <span class="c-annotation">@Nullable</span>
+        <span class="c-type">LocalDate</span> campaignEndDate
+) {
+    <span class="c-comment">// Fail-Fast Compact Constructor: Çapraz alan iş kuralı doğrulaması</span>
+    <span class="c-keyword">public</span> <span class="c-type">CreateProductRequest</span> {
+        <span class="c-keyword">if</span> (campaignStartDate != <span class="c-keyword">null</span> &amp;&amp; campaignEndDate != <span class="c-keyword">null</span> &amp;&amp; campaignEndDate.isBefore(campaignStartDate)) {
+            <span class="c-keyword">throw new</span> <span class="c-type">IllegalArgumentException</span>(<span class="c-string">"Kampanya bitiş tarihi başlangıç tarihinden önce olamaz"</span>);
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">UpdateProductRequest.java <span class="code-lang-badge">Java 21 Record</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-updatereq')">Kopyala</button>
+        </div>
+        <pre><code id="c-updatereq"><span class="c-keyword">package</span> com.enterprise.coreapi.dto.request;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> jakarta.validation.constraints.DecimalMin;
+<span class="c-keyword">import</span> jakarta.validation.constraints.Size;
+<span class="c-keyword">import</span> org.jspecify.annotations.Nullable;
+
+<span class="c-keyword">import</span> java.math.BigDecimal;
+
+<span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün kısmi güncelleme istek sözleşmesi"</span>)
+<span class="c-keyword">public record</span> <span class="c-type">UpdateProductRequest</span>(
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Yeni ürün adı"</span>, example = <span class="c-string">"MacBook Pro 16 M3 Max"</span>)
+        <span class="c-annotation">@Nullable</span>
+        <span class="c-annotation">@Size</span>(min = 2, max = 100, message = <span class="c-string">"Ürün adı 2 ile 100 karakter arasında olmalıdır"</span>)
+        <span class="c-type">String</span> name,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Yeni birim fiyat"</span>, example = <span class="c-string">"82999.50"</span>)
+        <span class="c-annotation">@Nullable</span>
+        <span class="c-annotation">@DecimalMin</span>(value = <span class="c-string">"0.01"</span>, message = <span class="c-string">"Fiyat sıfırdan büyük olmalıdır"</span>)
+        <span class="c-type">BigDecimal</span> price,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün aktiflik durumu"</span>, example = <span class="c-string">"true"</span>)
+        <span class="c-annotation">@Nullable</span>
+        <span class="c-type">Boolean</span> active
+) {
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 4: RESPONSE RECORD SÖZLEŞMELERİ -->
+    <section id="asama-4">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 4</div>
+        <h2 class="section-title">Response DTO Sözleşmeleri (Records)</h2>
+        <p class="section-desc">Değişmez (immutable), hassas veri sızdırmayan ve hafif yanıt modelleri.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">ProductResponse.java <span class="code-lang-badge">Java 21 Record</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-prodresp')">Kopyala</button>
+        </div>
+        <pre><code id="c-prodresp"><span class="c-keyword">package</span> com.enterprise.coreapi.dto.response;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> org.jspecify.annotations.Nullable;
+
+<span class="c-keyword">import</span> java.math.BigDecimal;
+<span class="c-keyword">import</span> java.time.Instant;
+
+<span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün detay yanıt modeli"</span>)
+<span class="c-keyword">public record</span> <span class="c-type">ProductResponse</span>(
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Benzersiz ürün ID'si"</span>, example = <span class="c-string">"101"</span>)
+        <span class="c-type">Long</span> id,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün adı"</span>, example = <span class="c-string">"MacBook Pro 16"</span>)
+        <span class="c-type">String</span> name,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün SKU"</span>, example = <span class="c-string">"PRD-MBP16-001"</span>)
+        <span class="c-type">String</span> sku,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Birim fiyat"</span>, example = <span class="c-string">"74999.99"</span>)
+        <span class="c-type">BigDecimal</span> price,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Aktiflik durumu"</span>, example = <span class="c-string">"true"</span>)
+        <span class="c-keyword">boolean</span> active,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Kategori özet bilgisi"</span>)
+        <span class="c-annotation">@Nullable</span>
+        <span class="c-type">CategorySummaryResponse</span> category,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Kayıt oluşturulma zamanı"</span>)
+        <span class="c-type">Instant</span> createdAt,
+
+        <span class="c-annotation">@Schema</span>(description = <span class="c-string">"Son güncelleme zamanı"</span>)
+        <span class="c-annotation">@Nullable</span>
+        <span class="c-type">Instant</span> updatedAt
+) {
+}</code></pre>
+      </div>
+
+      <div class="grid-2">
+        <div class="code-box">
+          <div class="code-head">
+            <div class="code-file">ProductSummaryResponse.java <span class="code-lang-badge">Record</span></div>
+            <button class="btn-copy" onclick="copyCode(this, 'c-prodsum')">Kopyala</button>
+          </div>
+          <pre><code id="c-prodsum"><span class="c-keyword">package</span> com.enterprise.coreapi.dto.response;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> java.math.BigDecimal;
+
+<span class="c-annotation">@Schema</span>(description = <span class="c-string">"Ürün özet listeleme modeli"</span>)
+<span class="c-keyword">public record</span> <span class="c-type">ProductSummaryResponse</span>(
+        <span class="c-type">Long</span> id,
+        <span class="c-type">String</span> name,
+        <span class="c-type">String</span> sku,
+        <span class="c-type">BigDecimal</span> price
+) {}</code></pre>
+        </div>
+
+        <div class="code-box">
+          <div class="code-head">
+            <div class="code-file">CategorySummaryResponse.java <span class="code-lang-badge">Record</span></div>
+            <button class="btn-copy" onclick="copyCode(this, 'c-catsum')">Kopyala</button>
+          </div>
+          <pre><code id="c-catsum"><span class="c-keyword">package</span> com.enterprise.coreapi.dto.response;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+
+<span class="c-annotation">@Schema</span>(description = <span class="c-string">"Kategori özet bilgisi"</span>)
+<span class="c-keyword">public record</span> <span class="c-type">CategorySummaryResponse</span>(
+        <span class="c-type">Long</span> id,
+        <span class="c-type">String</span> name
+) {}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- AŞAMA 5: MAPSTRUCT MAPPER MİMARİSİ -->
+    <section id="asama-5">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 5</div>
+        <h2 class="section-title">Kurumsal MapStruct Mapper Mimarisi</h2>
+        <p class="section-desc">Compile-time tip güvenli dönüşümler, @MappingTarget kısmi güncelleme ve derleme hatası garantisi.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">ProductMapper.java <span class="code-lang-badge">MapStruct Interface</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-mapper')">Kopyala</button>
+        </div>
+        <pre><code id="c-mapper"><span class="c-keyword">package</span> com.enterprise.coreapi.mapper;
+
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.request.CreateProductRequest;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.request.UpdateProductRequest;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.response.ProductResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.response.ProductSummaryResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.entity.Product;
+<span class="c-keyword">import</span> org.mapstruct.*;
+
+<span class="c-keyword">import</span> java.util.List;
+
+<span class="c-annotation">@Mapper</span>(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.ERROR,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
+<span class="c-keyword">public interface</span> <span class="c-type">ProductMapper</span> {
+
+    <span class="c-comment">/**
+     * CreateRequest -> Product Entity Dönüşümü
+     * ID ve audit alanları veritabanı/servis tarafından yönetildiğinden açıkça ignore edilir.
+     */</span>
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"id"</span>, ignore = <span class="c-keyword">true</span>)
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"category"</span>, ignore = <span class="c-keyword">true</span>) <span class="c-comment">// Service katmanında yüklenir</span>
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"active"</span>, constant = <span class="c-string">"true"</span>)
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"createdAt"</span>, ignore = <span class="c-keyword">true</span>)
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"updatedAt"</span>, ignore = <span class="c-keyword">true</span>)
+    <span class="c-type">Product</span> <span class="c-method">toEntity</span>(<span class="c-type">CreateProductRequest</span> request);
+
+    <span class="c-comment">/**
+     * Product Entity -> ProductResponse DTO Dönüşümü
+     */</span>
+    <span class="c-type">ProductResponse</span> <span class="c-method">toResponse</span>(<span class="c-type">Product</span> entity);
+
+    <span class="c-comment">/**
+     * Product Entity -> ProductSummaryResponse DTO Dönüşümü
+     */</span>
+    <span class="c-type">ProductSummaryResponse</span> <span class="c-method">toSummaryResponse</span>(<span class="c-type">Product</span> entity);
+
+    <span class="c-comment">/**
+     * Liste Dönüşümü
+     */</span>
+    <span class="c-type">List</span>&lt;<span class="c-type">ProductSummaryResponse</span>&gt; <span class="c-method">toSummaryResponseList</span>(<span class="c-type">List</span>&lt;<span class="c-type">Product</span>&gt; entities);
+
+    <span class="c-comment">/**
+     * Kısmi Güncelleme (Partial Update) Sözleşmesi
+     * nullValuePropertyMappingStrategy = IGNORE sayesinde DTO'da null gelen alanlar entity'yi ezmez.
+     */</span>
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"id"</span>, ignore = <span class="c-keyword">true</span>)
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"sku"</span>, ignore = <span class="c-keyword">true</span>) <span class="c-comment">// İş kuralı: SKU değiştirilemez</span>
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"category"</span>, ignore = <span class="c-keyword">true</span>)
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"createdAt"</span>, ignore = <span class="c-keyword">true</span>)
+    <span class="c-annotation">@Mapping</span>(target = <span class="c-string">"updatedAt"</span>, ignore = <span class="c-keyword">true</span>)
+    <span class="c-keyword">void</span> <span class="c-method">updateEntityFromDto</span>(<span class="c-type">UpdateProductRequest</span> request, <span class="c-annotation">@MappingTarget</span> <span class="c-type">Product</span> entity);
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 6: SERVICE & CONTROLLER ENTEGRASYONU -->
+    <section id="asama-6">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 6</div>
+        <h2 class="section-title">Service &amp; Controller Entegrasyonu</h2>
+        <p class="section-desc">Katı protokol sınırları: Service sadece saf Record DTO alır/döner, Controller HTTP zarfını yönetir.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">ProductServiceImpl.java <span class="code-lang-badge">Pure Service</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-service')">Kopyala</button>
+        </div>
+        <pre><code id="c-service"><span class="c-keyword">package</span> com.enterprise.coreapi.service.impl;
+
+<span class="c-keyword">import</span> com.enterprise.coreapi.common.exception.ResourceNotFoundException;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.request.CreateProductRequest;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.request.UpdateProductRequest;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.response.ProductResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.response.ProductSummaryResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.entity.Product;
+<span class="c-keyword">import</span> com.enterprise.coreapi.mapper.ProductMapper;
+<span class="c-keyword">import</span> com.enterprise.coreapi.repository.ProductRepository;
+<span class="c-keyword">import</span> com.enterprise.coreapi.service.ProductService;
+<span class="c-keyword">import</span> lombok.RequiredArgsConstructor;
+<span class="c-keyword">import</span> org.springframework.data.domain.Page;
+<span class="c-keyword">import</span> org.springframework.data.domain.Pageable;
+<span class="c-keyword">import</span> org.springframework.stereotype.Service;
+<span class="c-keyword">import</span> org.springframework.transaction.annotation.Transactional;
+
+<span class="c-annotation">@Service</span>
+<span class="c-annotation">@RequiredArgsConstructor</span>
+<span class="c-keyword">public class</span> <span class="c-type">ProductServiceImpl</span> <span class="c-keyword">implements</span> <span class="c-type">ProductService</span> {
+
+    <span class="c-keyword">private final</span> <span class="c-type">ProductRepository</span> productRepository;
+    <span class="c-keyword">private final</span> <span class="c-type">ProductMapper</span> productMapper;
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-annotation">@Transactional</span>
+    <span class="c-keyword">public</span> <span class="c-type">ProductResponse</span> <span class="c-method">createProduct</span>(<span class="c-type">CreateProductRequest</span> request) {
+        <span class="c-type">Product</span> product = productMapper.<span class="c-method">toEntity</span>(request);
+        <span class="c-type">Product</span> savedProduct = productRepository.<span class="c-method">save</span>(product);
+        <span class="c-keyword">return</span> productMapper.<span class="c-method">toResponse</span>(savedProduct);
+    }
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-annotation">@Transactional</span>(readOnly = <span class="c-keyword">true</span>)
+    <span class="c-keyword">public</span> <span class="c-type">ProductResponse</span> <span class="c-method">getProductById</span>(<span class="c-type">Long</span> id) {
+        <span class="c-type">Product</span> product = productRepository.<span class="c-method">findById</span>(id)
+                .<span class="c-method">orElseThrow</span>(() -&gt; <span class="c-keyword">new</span> <span class="c-type">ResourceNotFoundException</span>(<span class="c-string">"Ürün bulunamadı: "</span> + id));
+        <span class="c-keyword">return</span> productMapper.<span class="c-method">toResponse</span>(product);
+    }
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-annotation">@Transactional</span>(readOnly = <span class="c-keyword">true</span>)
+    <span class="c-keyword">public</span> <span class="c-type">Page</span>&lt;<span class="c-type">ProductSummaryResponse</span>&gt; <span class="c-method">getAllProducts</span>(<span class="c-type">Pageable</span> pageable) {
+        <span class="c-keyword">return</span> productRepository.<span class="c-method">findAll</span>(pageable)
+                .<span class="c-method">map</span>(productMapper::toSummaryResponse);
+    }
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-annotation">@Transactional</span>
+    <span class="c-keyword">public</span> <span class="c-type">ProductResponse</span> <span class="c-method">updateProduct</span>(<span class="c-type">Long</span> id, <span class="c-type">UpdateProductRequest</span> request) {
+        <span class="c-type">Product</span> product = productRepository.<span class="c-method">findById</span>(id)
+                .<span class="c-method">orElseThrow</span>(() -&gt; <span class="c-keyword">new</span> <span class="c-type">ResourceNotFoundException</span>(<span class="c-string">"Ürün bulunamadı: "</span> + id));
+
+        productMapper.<span class="c-method">updateEntityFromDto</span>(request, product);
+        <span class="c-keyword">return</span> productMapper.<span class="c-method">toResponse</span>(product);
+    }
+}</code></pre>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">ProductController.java <span class="code-lang-badge">REST Controller</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-controller')">Kopyala</button>
+        </div>
+        <pre><code id="c-controller"><span class="c-keyword">package</span> com.enterprise.coreapi.controller;
+
+<span class="c-keyword">import</span> com.enterprise.coreapi.common.openapi.*;
+<span class="c-keyword">import</span> com.enterprise.coreapi.common.response.ApiResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.common.response.PageResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.request.CreateProductRequest;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.request.UpdateProductRequest;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.response.ProductResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.response.ProductSummaryResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.service.ProductService;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.Operation;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.tags.Tag;
+<span class="c-keyword">import</span> jakarta.validation.Valid;
+<span class="c-keyword">import</span> lombok.RequiredArgsConstructor;
+<span class="c-keyword">import</span> org.slf4j.MDC;
+<span class="c-keyword">import</span> org.springframework.data.domain.Pageable;
+<span class="c-keyword">import</span> org.springframework.data.web.PageableDefault;
+<span class="c-keyword">import</span> org.springframework.http.HttpStatus;
+<span class="c-keyword">import</span> org.springframework.http.ResponseEntity;
+<span class="c-keyword">import</span> org.springframework.web.bind.annotation.*;
+
+<span class="c-annotation">@RestController</span>
+<span class="c-annotation">@RequestMapping</span>(<span class="c-string">"/api/v1/products"</span>)
+<span class="c-annotation">@RequiredArgsConstructor</span>
+<span class="c-annotation">@Tag</span>(name = <span class="c-string">"Product Management"</span>, description = <span class="c-string">"Ürün kayıt, güncelleme ve listeleme uçları"</span>)
+<span class="c-keyword">public class</span> <span class="c-type">ProductController</span> {
+
+    <span class="c-keyword">private final</span> <span class="c-type">ProductService</span> productService;
+
+    <span class="c-annotation">@PostMapping</span>
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"Yeni ürün oluştur"</span>)
+    <span class="c-annotation">@ApiCreateResponse</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">ProductResponse</span>&gt;&gt; <span class="c-method">createProduct</span>(
+            <span class="c-annotation">@Valid</span> <span class="c-annotation">@RequestBody</span> <span class="c-type">CreateProductRequest</span> request
+    ) {
+        <span class="c-type">ProductResponse</span> response = productService.<span class="c-method">createProduct</span>(request);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>
+                .<span class="c-method">status</span>(<span class="c-type">HttpStatus</span>.<span class="c-var">CREATED</span>)
+                .<span class="c-method">body</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(response, <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-string">"traceId"</span>)));
+    }
+
+    <span class="c-annotation">@GetMapping</span>(<span class="c-string">"/{id}"</span>)
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"ID ile ürün detayı getir"</span>)
+    <span class="c-annotation">@ApiGetResponse</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">ProductResponse</span>&gt;&gt; <span class="c-method">getProductById</span>(<span class="c-annotation">@PathVariable</span> <span class="c-type">Long</span> id) {
+        <span class="c-type">ProductResponse</span> response = productService.<span class="c-method">getProductById</span>(id);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(response, <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-string">"traceId"</span>)));
+    }
+
+    <span class="c-annotation">@GetMapping</span>
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"Sayfalı ürün listesi"</span>)
+    <span class="c-annotation">@ApiGetResponse</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">PageResponse</span>&lt;<span class="c-type">ProductSummaryResponse</span>&gt;&gt;&gt; <span class="c-method">getAllProducts</span>(
+            <span class="c-annotation">@PageableDefault</span>(size = 20, sort = <span class="c-string">"id"</span>) <span class="c-type">Pageable</span> pageable
+    ) {
+        <span class="c-type">PageResponse</span>&lt;<span class="c-type">ProductSummaryResponse</span>&gt; page = <span class="c-type">PageResponse</span>.<span class="c-method">of</span>(productService.<span class="c-method">getAllProducts</span>(pageable));
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(page, <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-string">"traceId"</span>)));
+    }
+
+    <span class="c-annotation">@PatchMapping</span>(<span class="c-string">"/{id}"</span>)
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"Ürün bilgilerini kısmi güncelle"</span>)
+    <span class="c-annotation">@ApiGetResponse</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">ProductResponse</span>&gt;&gt; <span class="c-method">updateProduct</span>(
+            <span class="c-annotation">@PathVariable</span> <span class="c-type">Long</span> id,
+            <span class="c-annotation">@Valid</span> <span class="c-annotation">@RequestBody</span> <span class="c-type">UpdateProductRequest</span> request
+    ) {
+        <span class="c-type">ProductResponse</span> response = productService.<span class="c-method">updateProduct</span>(id, request);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(response, <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-string">"traceId"</span>)));
+    }
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 7: ANTI-PATTERN KARŞILAŞTIRMALARI -->
+    <section id="asama-7">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 7</div>
+        <h2 class="section-title">Anti-Pattern Karşılaştırmaları (Doğru vs. Yanlış)</h2>
+        <p class="section-desc">Sıkça yapılan mimari hatalar ve kurumsal çözüm modelleri.</p>
+      </div>
+
+      <!-- Anti-Pattern 1 -->
+      <div class="comp-box">
+        <div class="comp-col wrong">
+          <div class="comp-header">❌ YANLIŞ: Mutable Sınıf DTO + Setter Amelesi</div>
+          <pre><code>@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductDto {
+    private Long id;
+    private String name;
+    private BigDecimal price;
+}
+// Risk: İş akışının ortasında bir geliştirici 
+// dto.setPrice(new BigDecimal("0")) çağırarak veriyi bozabilir!</code></pre>
+          <div class="comp-note">Mutable sınıflar thread-safe değildir ve kodun herhangi bir yerinde veri yapısının değiştirilmesine açıktır.</div>
+        </div>
+
+        <div class="comp-col right">
+          <div class="comp-header">✅ DOĞRU: Java 21 İmmutable Record</div>
+          <pre><code>public record ProductResponse(
+        Long id,
+        String name,
+        BigDecimal price
+) {
+    // Doğal thread-safe, compile-time güvenceli, sıfır setter riski!
+}</code></pre>
+          <div class="comp-note">Record nesneleri oluşturulduktan sonra değiştirilemez (immutable), thread-safe ve JVM optimizasyonludur.</div>
+        </div>
+      </div>
+
+      <!-- Anti-Pattern 2 -->
+      <div class="comp-box">
+        <div class="comp-col wrong">
+          <div class="comp-header">❌ YANLIŞ: JPA Entity'nin Controller'a Sızması</div>
+          <pre><code>@PostMapping
+public ResponseEntity&lt;Product&gt; create(@RequestBody Product product) {
+    // Mass Assignment Açığı: İstemci payload içinde 
+    // "id": 1 veya "active": true göndererek veri ezebilir!
+    return ResponseEntity.ok(repository.save(product));
+}</code></pre>
+          <div class="comp-note">Veritabanı varlıklarının doğrudan Controller'a açılması ciddi güvenlik ve veri bütünlüğü riskleri doğurur.</div>
+        </div>
+
+        <div class="comp-col right">
+          <div class="comp-header">✅ DOĞRU: Strict DTO &amp; MapStruct İzolasyonu</div>
+          <pre><code>@PostMapping
+public ResponseEntity&lt;ApiResponse&lt;ProductResponse&gt;&gt; create(
+        @Valid @RequestBody CreateProductRequest request
+) {
+    // MapStruct @Mapping(target="id", ignore=true) uygular!
+    ProductResponse response = productService.createProduct(request);
+    return ResponseEntity.status(CREATED).body(ApiResponse.success(response));
+}</code></pre>
+          <div class="comp-note">Yalnızca açıkça izin verilen alanlar içeri alınır, iç alanlar ve veritabanı ID'leri izole kalır.</div>
+        </div>
+      </div>
+
+      <!-- Anti-Pattern 3 -->
+      <div class="comp-box">
+        <div class="comp-col wrong">
+          <div class="comp-header">❌ YANLIŞ: Reflection Araçları (ModelMapper/BeanUtils)</div>
+          <pre><code>// ModelMapper veya Spring BeanUtils.copyProperties(source, target)
+// Çalışma anında (runtime) alan isimlerini string ile arar:
+// 1. Ağır CPU/bellek maliyeti (reflection overhead).
+// 2. Alan ismi değiştiğinde sessizce null yutar, derleme hatası VERMEZ!</code></pre>
+          <div class="comp-note">Reflection tabanlı kütüphaneler derleme zamanında tip kontrolü sağlayamaz ve çalışma anı performansını düşürür.</div>
+        </div>
+
+        <div class="comp-col right">
+          <div class="comp-header">✅ DOĞRU: Derleme Zamanında Kod Üreten MapStruct</div>
+          <pre><code>// MapStruct derleme zamanında doğrudan getter/setter kodu (.class) üretir.
+// Sıfır reflection overhead!
+// unmappedTargetPolicy = ERROR sayesinde alan adı değişirse DERLEME PATLAR!</code></pre>
+          <div class="comp-note">Doğrudan Java metot çağrısı hızında çalışır ve tüm alan eşleşmelerini derleme anında garanti eder.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AŞAMA 8: MİMARİ KONTROL LİSTESİ -->
+    <section id="asama-8">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 8</div>
+        <h2 class="section-title">Kurumsal Mimari Kontrol Listesi (Checklist)</h2>
+        <p class="section-desc">DTO ve Mapper katmanlarını commit etmeden önce kontrol edilmesi zorunlu standartlar tablosu.</p>
+      </div>
+
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>Kriter Kodu</th>
+              <th>Kontrol Maddesi</th>
+              <th>Standart &amp; Kural Açıklaması</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>CHK-DTO-01</code></td>
+              <td><strong>Java 21 `record` Zorunluluğu</strong></td>
+              <td>Tüm Request ve Response DTO'ları istisnasız <code>record</code> olarak tanımlanmalı; sınıf DTO ve setter kullanımı yasaklanmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-02</code></td>
+              <td><strong>Zero Entity Exposure</strong></td>
+              <td>JPA Entity sınıfları asla Controller katmanında parametre (<code>@RequestBody</code>) veya dönüş tipi olamaz.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-03</code></td>
+              <td><strong>Fail-Fast Jakarta Validation</strong></td>
+              <td>Tüm kısıtlamalar (<code>@NotBlank</code>, <code>@NotNull</code>, <code>@DecimalMin</code>) Request Record'larında tanımlanmalı ve Controller'da <code>@Valid</code> ile tetiklenmelidir.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-04</code></td>
+              <td><strong>Compact Constructor Kontrolü</strong></td>
+              <td>Birbiriyle ilişkili parametrelerin mantıksal doğrulamaları (örn. tarih aralıkları) Record Compact Constructor'ında yapılmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-05</code></td>
+              <td><strong>Compile-Time MapStruct</strong></td>
+              <td>ModelMapper/BeanUtils kullanımı yasaktır; tüm dönüşümler derleme anında kod üreten MapStruct ile yapılmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-06</code></td>
+              <td><strong>Sıkı Hata Politikası</strong></td>
+              <td><code>unmappedTargetPolicy = ReportingPolicy.ERROR</code> ayarlanmalı; eşleşmeyen tüm alanlar açıkça <code>ignore = true</code> tanımlanmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-07</code></td>
+              <td><strong>Lombok-MapStruct Binding</strong></td>
+              <td><code>pom.xml</code> altında <code>lombok</code>, <code>lombok-mapstruct-binding</code> ve <code>mapstruct-processor</code> sıralı olarak tanımlanmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-08</code></td>
+              <td><strong>Kısmi Güncelleme Güvenliği</strong></td>
+              <td>PATCH/PUT metodlarında <code>@MappingTarget</code> ve <code>NullValuePropertyMappingStrategy.IGNORE</code> ile <code>null</code> alanların veriyi ezmesi engellenmelidir.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-09</code></td>
+              <td><strong>Saf Mapper Prensibi</strong></td>
+              <td>Mapper arayüzlerine DB Repository veya Service enjekte edilmemeli; veri tabanı sorguları ve iş mantığı Service katmanında kalmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-DTO-10</code></td>
+              <td><strong>OpenAPI &amp; JSpecify</strong></td>
+              <td>Record alanları <code>@Schema</code> ile dokümante edilmeli, null olabilir alanlar <code>@Nullable</code> ile işaretlenmelidir.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Tek tıkla kod kopyalama fonksiyonu
+    function copyCode(button, codeId) {
+      const codeElement = document.getElementById(codeId);
+      if (!codeElement) return;
+
+      const text = codeElement.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = button.innerText;
+        button.innerText = 'Kopyalandı!';
+        button.classList.add('copied');
+
+        setTimeout(() => {
+          button.innerText = originalText;
+          button.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Kopyalama hatası: ', err);
+      });
+    }
+
+    // Aktif Sidebar Linki Takibi (IntersectionObserver)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          document.querySelectorAll('nav.nav-menu a').forEach(link => {
+            if (link.getAttribute('href') === `#${id}`) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    document.querySelectorAll('section').forEach(section => {
+      observer.observe(section);
+    });
+  </script>
+</body>
+</html>
