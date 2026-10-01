@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Boot 4.1.1 Kurumsal Servis Katmanı Standartları</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-alt: #161f30;
+      --panel-card: #1e293b;
+      --border: #1f2937;
+      --border-light: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
+      --code-bg: #030712;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1120;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.5rem 0.75rem 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      color: #fff;
+      background: var(--panel-card);
+    }
+
+    .nav-item.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.1);
+      font-weight: 600;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .nav-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .nav-item.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+    }
+
+    .sidebar-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 3rem 4rem 6rem;
+      max-width: 1200px;
+      overflow-x: hidden;
+    }
+
+    /* Hero / Header */
+    .hero {
+      margin-bottom: 3.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--green);
+      background: var(--green-glow);
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p.lead {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 850px;
+      margin-bottom: 1.5rem;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge-cyan { background: var(--cyan-glow); color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .badge-green { background: var(--green-glow); color: var(--green); border-color: rgba(168, 85, 247, 0.3); }
+    .badge-amber { background: var(--amber-glow); color: var(--amber); border-color: rgba(245, 158, 11, 0.3); }
+    .badge-purple { background: var(--purple-glow); color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    /* Sections */
+    section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--cyan);
+      color: #000;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Cards & Containers */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* Callouts */
+    .callout {
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: rgba(6, 182, 212, 0.08);
+      border-left-color: var(--cyan);
+      color: #cffafe;
+    }
+
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border-left-color: var(--amber);
+      color: #fef3c7;
+    }
+
+    .callout-danger {
+      background: rgba(244, 63, 94, 0.08);
+      border-left-color: var(--rose);
+      color: #ffe4e6;
+    }
+
+    .callout-success {
+      background: rgba(16, 185, 129, 0.08);
+      border-left-color: var(--green);
+      color: #d1fae5;
+    }
+
+    .callout strong {
+      color: #fff;
+    }
+
+    /* Tabs */
+    .tabs-wrap {
+      margin: 1.25rem 0;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+
+    .tab-trigger {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tab-trigger:hover {
+      color: #fff;
+      background: var(--panel);
+    }
+
+    .tab-trigger.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.12);
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Code Boxes */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0d1424;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+    }
+
+    .code-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .dot-group {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+
+    .copy-btn {
+      background: var(--panel-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border-light);
+      padding: 0.25rem 0.65rem;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--border-light);
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+    }
+
+    pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      margin: 1.25rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #0d1527;
+      padding: 0.85rem 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82em;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #f1f5f9;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #000;
+      padding: 0.65rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand-box">
+      <span class="brand-badge">Enterprise Standards</span>
+      <h2 class="brand-title">Service Layer</h2>
+      <p class="brand-subtitle">Spring Boot 4.1.1 + Java 21</p>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">MİMARİ PRENSİPLER</div>
+      <a href="#s1-interface-impl" class="nav-item active">
+        <span class="nav-num">1</span>
+        <span>Interface &amp; Impl Ayrımı</span>
+      </a>
+      <a href="#s2-transactional" class="nav-item">
+        <span class="nav-num">2</span>
+        <span>@Transactional Sınırları</span>
+      </a>
+      <a href="#s3-zero-http" class="nav-item">
+        <span class="nav-num">3</span>
+        <span>Sıfır HTTP Sızıntısı</span>
+      </a>
+      <a href="#s4-dual-id-security" class="nav-item">
+        <span class="nav-num">4</span>
+        <span>Dual-ID &amp; Güvenlik (UUID)</span>
+      </a>
+      <a href="#s5-soft-delete-concurrency" class="nav-item">
+        <span class="nav-num">5</span>
+        <span>Soft Delete &amp; Concurrency</span>
+      </a>
+
+      <div class="nav-label">UYGULAMA &amp; TEST</div>
+      <a href="#s6-mapstruct-di" class="nav-item">
+        <span class="nav-num">6</span>
+        <span>MapStruct &amp; Constructor DI</span>
+      </a>
+      <a href="#s7-unit-tests" class="nav-item">
+        <span class="nav-num">7</span>
+        <span>Mockito Birim Testleri</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      Kurumsal Servis Mimarisi ve İş Mantığı &copy; 2026
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        Enterprise Service Layer Architecture Blueprint
+      </div>
+      <h1>Kurumsal Servis Katmanı Standartları</h1>
+      <p class="lead">
+        Spring Boot 4.1.1 mikroservislerinde iş mantığı soyutlaması (Interface &amp; Implementation), bildirimsel transaction sınırları (<code>@Transactional(readOnly = true)</code>), sıfır HTTP sızıntısı, Dual-ID (<code>UUID publicId</code>) ve yüksek hızlı Mockito birim test rehberi.
+      </p>
+
+      <div class="badges-row">
+        <span class="badge badge-cyan">Java 21 LTS / Spring Boot 4.1.1</span>
+        <span class="badge badge-green">Interface &amp; Impl Abstraction</span>
+        <span class="badge badge-amber">Strict @Transactional Boundaries</span>
+        <span class="badge badge-purple">Zero HTTP Leaks (Pure DTOs)</span>
+        <span class="badge">Dual-ID &amp; Soft Delete</span>
+        <span class="badge badge-green">Pure Mockito Unit Tests</span>
+      </div>
+    </header>
+
+    <!-- BÖLÜM 1: INTERFACE & IMPL AYRIMI -->
+    <section id="s1-interface-impl">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">1</span>
+          Arayüz ve Gerçekleştirim Ayrımı (Interface &amp; Implementation)
+        </h2>
+        <p class="section-desc">
+          Kurumsal mikroservislerde Controller katmanı asla somut servis sınıflarına doğrudan bağımlı olmamalıdır. Dependency Inversion prensibi gereği Controller yalnızca sözleşmeye (Interface) bağımlıdır.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--rose);">
+          <div class="card-title" style="color: var(--rose);">❌ Doğrudan Somut Sınıf Enjeksiyonu</div>
+          <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem; line-height: 1.7;">
+            <li>Sıkı bağlılık (Tight Coupling) yaratır; Controller iş mantığının tüm iç detaylarına maruz kalır.</li>
+            <li>Controller katmanı test edilirken servis davranışını mock'lamak veya taklit etmek zorlaşır.</li>
+            <li>AOP proxy'leri, Decorator deseni veya Caching katmanları şeffaf biçimde araya giremez.</li>
+          </ul>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--green);">
+          <div class="card-title" style="color: var(--green);">✅ Interface + Impl Ayrımı (Kurumsal Standart)</div>
+          <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem; line-height: 1.7;">
+            <li>Gevşek bağlılık (Loose Coupling): Controller yalnızca metot imzalarını ve dönüş tiplerini bilir.</li>
+            <li>Mocking kolaylığı: Controller testlerinde <code>@MockitoBean ProductService</code> ile kusursuz test edilebilirlik.</li>
+            <li>Gerektiğinde yeni bir gerçekleştirim (örneğin <code>ProductServiceV2Impl</code>) Controller'a dokunmadan devreye alınabilir.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📁 Paket Hiyerarşisi Standardı</div>
+        <div class="code-box">
+          <pre><code>com.enterprise.coreapi.service/
+├── ProductService.java               # Sözleşme Arayüzü (Interface)
+└── implementation/ (veya impl/)
+    └── ProductServiceImpl.java       # Somut Gerçekleştirim (@Service)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 2: TRANSACTION SINIRLARI -->
+    <section id="s2-transactional">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">2</span>
+          Katı Transaction Sınırları &amp; readOnly Performansı
+        </h2>
+        <p class="section-desc">
+          Veritabanı transaction sınırları yalnızca ve yalnızca Servis katmanında yönetilir. Controller veya Repository katmanına <code>@Transactional</code> konulması yasaktır.
+        </p>
+      </div>
+
+      <div class="callout callout-info">
+        <p>
+          <strong>Sınıf Seviyesinde Varsayılan: <code>@Transactional(readOnly = true)</code></strong><br>
+          1. Hibernate okuma işlemlerinde <strong>Dirty-Checking (kirli kontrol)</strong> mekanizmasını tamamen kapatır. Nesnelerin ilk durumlarının (snapshot) bellekte tutulmasını engelleyerek RAM tüketimini ve CPU maliyetini minimize eder.<br>
+          2. Master/Replica veritabanı altyapılarında JDBC sürücüsü okuma sorgularını otomatik olarak Read-Replica düğümlerine yönlendirir.
+        </p>
+      </div>
+
+      <div class="callout callout-warning">
+        <p>
+          <strong>Yazma Metotlarında Açık Bildirim: <code>@Transactional(rollbackFor = Exception.class)</code></strong><br>
+          Veri oluşturan, güncelleyen veya silen metotların üzerinde açıkça tanımlanmalıdır. Varsayılan Spring davranışında checked exception'lar rollback tetiklemez; <code>rollbackFor = Exception.class</code> eklenerek tüm hata senaryolarında veri tutarlılığı güvenceye alınır.
+        </p>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--rose);">
+        <div class="card-title" style="color: var(--rose);">⚠️ Kritik Tuzak: Self-Invocation (Kendi Kendini Çağırma)</div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+          Spring'in <code>@Transactional</code> mekanizması CGLIB proxy nesneleri üzerinden yürütülür. Aynı sınıf içindeki <code>readOnly = true</code> bir metot, yine aynı sınıftaki <code>@Transactional</code> bir yazma metodunu doğrudan (<code>this.saveInternal()</code>) çağırdığında proxy atlanır ve <strong>transaction hiç başlamaz!</strong>
+        </p>
+        <div class="code-box" style="margin-top: 0.75rem;">
+          <pre><code>// ❌ YANLIŞ: Proxy atlanır, save() transaction DIŞINDA çalışır!
+public void processBatch() {
+    this.createProduct(req); // CGLIB proxy devre dışı kalır!
+}
+
+// ✅ DOĞRU: Transactional metotlar Controller veya farklı bir servis üzerinden çağrılmalıdır.</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 3: SIFIR HTTP SIZINTISI -->
+    <section id="s3-zero-http">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">3</span>
+          Sıfır HTTP Sızıntısı (Zero HTTP Leaks)
+        </h2>
+        <p class="section-desc">
+          Servis katmanı salt iş mantığından ibarettir. Protokolden bağımsız olmalı; ister REST Controller'dan, ister bir Kafka tüketici (consumer) dinleyicisinden, ister bir Quartz zamanlayıcısından çağrılabilecek saflıkta kalmalıdır.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Katman / Alan</th>
+              <th>❌ Kesinlikle Yasaklı Unsurlar</th>
+              <th>✅ Kurumsal Standart &amp; Kabul Edilen Tipler</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Giriş Parametreleri</strong></td>
+              <td><code>HttpServletRequest</code>, <code>HttpHeaders</code>, <code>@RequestParam</code>, <code>@PathVariable</code></td>
+              <td>Saf Java 21 Record Request DTO'ları (<code>CreateProductRequest</code>), <code>UUID publicId</code>, <code>Pageable</code></td>
+            </tr>
+            <tr>
+              <td><strong>Dönüş Değerleri</strong></td>
+              <td><code>ResponseEntity&lt;T&gt;</code>, <code>HttpStatus</code>, <code>ApiResponse&lt;T&gt;</code></td>
+              <td>Saf Java 21 Record Response DTO'ları (<code>ProductResponse</code>), <code>Page&lt;ProductResponse&gt;</code>, <code>void</code></td>
+            </tr>
+            <tr>
+              <td><strong>Hata Yönetimi</strong></td>
+              <td><code>return null;</code>, hata kodlu String dönmek, HTTP Status dönmek</td>
+              <td>Domain Exception fırlatmak: <code>throw new ResourceNotFoundException(...)</code> veya <code>throw new ApiException(...)</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 4: DUAL-ID VE GÜVENLİK -->
+    <section id="s4-dual-id-security">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">4</span>
+          Dual-ID &amp; Güvenlik Entegrasyonu (UUID publicId)
+        </h2>
+        <p class="section-desc">
+          IDOR (Insecure Direct Object Reference) saldırılarını engellemek ve veritabanı performansını korumak için geliştirdiğimiz Dual-ID deseni Servis katmanında yönetilir.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title" style="color: var(--cyan);">🌐 Dış API Sorguları (UUID publicId)</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Dış istemci (Frontend / Mobil) servisi <code>UUID publicId</code> ile çağırır:
+          </p>
+          <div class="code-box">
+            <pre><code>Product product = productRepository.findByPublicId(publicId)
+    .orElseThrow(() -> new ResourceNotFoundException("Product", "publicId", publicId));</code></pre>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-dim);">
+            Ardışık olmayan rastgele UUID, saldırganların <code>/products/1</code>, <code>/products/2</code> şeklinde verileri taramasını imkansız kılar.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="color: var(--green);">⚡ İç Veritabanı İlişkileri (Long id)</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            İç ilişkiler, foreign key bağlantıları ve JOIN işlemleri servis katmanı içinde <code>Long id</code> ile yürütülür:
+          </p>
+          <div class="code-box">
+            <pre><code>// Foreign key bağlarken iç id kullanılır (maksimum B-Tree performansı):
+item.setProductId(product.getId());</code></pre>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-dim);">
+            İç <code>Long id</code> dış dünyaya, API response DTO'larına veya loglara ASLA sızdırılmaz.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 5: SOFT DELETE VE CONCURRENCY -->
+    <section id="s5-soft-delete-concurrency">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">5</span>
+          Soft Delete &amp; Concurrency (Optimistic Locking)
+        </h2>
+        <p class="section-desc">
+          Kurumsal sistemlerde veriler fiziksel olarak silinmez; denetim iziyle birlikte mantıksal olarak işaretlenir. Eşzamanlı güncellemelerde ise Optimistic Locking veri bütünlüğünü korur.
+        </p>
+      </div>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-soft-del')">Mantıksal Silme (Soft Delete)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-optimistic')">Optimistic Locking (@Version)</button>
+        </div>
+
+        <div id="tab-soft-del" class="tab-content active">
+          <div class="card">
+            <div class="card-title" style="color: var(--green);">🗑️ markDeleted() ile Denetimli Mantıksal Silme</div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              Servis katmanı silme isteği aldığında fiziksel <code>repository.delete()</code> çağırmaz. Varlığın <code>markDeleted(currentUser)</code> metodunu tetikler:
+            </p>
+            <div class="code-box">
+              <pre><code>@Override
+@Transactional(rollbackFor = Exception.class)
+public void deleteProduct(UUID publicId) {
+    Product product = findProductByPublicId(publicId);
+    String currentUser = securityAuditorAware.getCurrentAuditor().orElse("SYSTEM");
+    
+    product.markDeleted(currentUser);
+    productRepository.save(product);
+}</code></pre>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Hibernate 6 seviyesindeki <code>@SQLRestriction("deleted = false")</code> filtresi sayesinde sonraki okuma sorgularında bu ürün otomatik olarak görünmez.
+            </p>
+          </div>
+        </div>
+
+        <div id="tab-optimistic" class="tab-content">
+          <div class="card">
+            <div class="card-title" style="color: var(--cyan);">🔒 Eşzamanlı Güncelleme Çakışması (Lost Updates Koruması)</div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              İki farklı yönetici aynı anda aynı ürünü güncellemek istediğinde:
+            </p>
+            <ol style="font-size: 0.88rem; color: var(--text-muted); padding-left: 1.5rem; line-height: 1.8;">
+              <li>Yönetici A ve B ürünü okur (versiyon = 1).</li>
+              <li>Yönetici A fiyatı günceller ve kaydeder (versiyon = 2 olur).</li>
+              <li>Yönetici B eski veri üzerinden kaydetmeye çalıştığında Hibernate <code>ObjectOptimisticLockingFailureException</code> fırlatır.</li>
+              <li>GlobalExceptionHandler devreye girer ve Yönetici B'ye temiz bir <code>409 CONFLICT</code> yanıtı döner. Veri ezilmesi engellenir!</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 6: MAPSTRUCT VE DI -->
+    <section id="s6-mapstruct-di">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">6</span>
+          MapStruct Delegasyonu &amp; Constructor Injection
+        </h2>
+        <p class="section-desc">
+          Servis metodlarının içi manuel <code>get/set</code> kodlarıyla kirletilmez. Dönüşümler MapStruct mapper'larına, bağımlılıklar ise değişmez (immutable) constructor injection'a bırakılır.
+        </p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title">
+            <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+            <span>Örnek Servis Sınıfı İskeleti</span>
+          </div>
+          <button class="copy-btn" onclick="copySnippet('codeDiTemplate', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeDiTemplate">@Slf4j
+@Service
+@RequiredArgsConstructor // private final alanlar için constructor üretir (@Autowired yasak!)
+@Transactional(readOnly = true) // Sınıf varsayılanı: yüksek hızlı okuma
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
+    private final SecurityAuditorAware securityAuditorAware;
+
+    // Metotlar...
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 7: MOCKITO BİRİM TESTLERİ -->
+    <section id="s7-unit-tests">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">7</span>
+          Yüksek Hızlı Mockito Birim Testleri (Unit Tests)
+        </h2>
+        <p class="section-desc">
+          Servis katmanı iş mantığı testlerinde asla ağır Spring ApplicationContext (<code>@SpringBootTest</code>) ayağa kaldırılmaz. Saf Mockito (<code>@ExtendWith(MockitoExtension.class)</code>) ile testler mikrosaniyeler içinde koşar.
+        </p>
+      </div>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-code-interface')">1. ProductService.java (Interface)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-code-impl')">2. ProductServiceImpl.java (Impl)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-code-test')">3. ProductServiceImplTest.java (Unit Test)</button>
+        </div>
+
+        <!-- TAB 1: INTERFACE -->
+        <div id="tab-code-interface" class="tab-content active">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/coreapi/service/ProductService.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeInterface', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeInterface">package com.enterprise.coreapi.service;
+
+import com.enterprise.coreapi.dto.request.CreateProductRequest;
+import com.enterprise.coreapi.dto.request.UpdateProductRequest;
+import com.enterprise.coreapi.dto.response.ProductResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.UUID;
+
+public interface ProductService {
+
+    ProductResponse createProduct(CreateProductRequest request);
+
+    ProductResponse getProductByPublicId(UUID publicId);
+
+    Page&lt;ProductResponse&gt; getAllProducts(Pageable pageable);
+
+    ProductResponse updateProduct(UUID publicId, UpdateProductRequest request);
+
+    void deleteProduct(UUID publicId);
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 2: IMPLEMENTATION -->
+        <div id="tab-code-impl" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/coreapi/service/implementation/ProductServiceImpl.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeImpl', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeImpl">package com.enterprise.coreapi.service.implementation;
+
+import com.enterprise.coreapi.common.config.SecurityAuditorAware;
+import com.enterprise.coreapi.common.entity.Product;
+import com.enterprise.coreapi.common.exception.ApiException;
+import com.enterprise.coreapi.common.exception.ErrorCode;
+import com.enterprise.coreapi.common.exception.ResourceNotFoundException;
+import com.enterprise.coreapi.dto.request.CreateProductRequest;
+import com.enterprise.coreapi.dto.request.UpdateProductRequest;
+import com.enterprise.coreapi.dto.response.ProductResponse;
+import com.enterprise.coreapi.mapper.ProductMapper;
+import com.enterprise.coreapi.repository.ProductRepository;
+import com.enterprise.coreapi.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
+    private final SecurityAuditorAware securityAuditorAware;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ProductResponse createProduct(CreateProductRequest request) {
+        log.info("Creating product with code: {}", request.code());
+
+        if (productRepository.existsByCode(request.code())) {
+            log.warn("Product creation rejected: Duplicate code [{}]", request.code());
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "A product with code '" + request.code() + "' already exists");
+        }
+
+        Product product = productMapper.toEntity(request);
+        Product savedProduct = productRepository.save(product);
+
+        log.info("Product created successfully with publicId: {}", savedProduct.getPublicId());
+        return productMapper.toResponse(savedProduct);
+    }
+
+    @Override
+    public ProductResponse getProductByPublicId(UUID publicId) {
+        log.debug("Fetching product by publicId: {}", publicId);
+        Product product = findProductByPublicId(publicId);
+        return productMapper.toResponse(product);
+    }
+
+    @Override
+    public Page&lt;ProductResponse&gt; getAllProducts(Pageable pageable) {
+        log.debug("Fetching paginated products: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return productRepository.findAll(pageable)
+                .map(productMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ProductResponse updateProduct(UUID publicId, UpdateProductRequest request) {
+        log.info("Updating product with publicId: {}", publicId);
+
+        Product product = findProductByPublicId(publicId);
+        productMapper.updateEntityFromRequest(request, product);
+        Product updatedProduct = productRepository.save(product);
+
+        log.info("Product updated successfully with publicId: {}", updatedProduct.getPublicId());
+        return productMapper.toResponse(updatedProduct);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteProduct(UUID publicId) {
+        log.info("Soft deleting product with publicId: {}", publicId);
+
+        Product product = findProductByPublicId(publicId);
+        String currentUser = securityAuditorAware.getCurrentAuditor().orElse("SYSTEM");
+        product.markDeleted(currentUser);
+
+        productRepository.save(product);
+        log.info("Product soft-deleted successfully: publicId={}, deletedBy={}", publicId, currentUser);
+    }
+
+    private Product findProductByPublicId(UUID publicId) {
+        return productRepository.findByPublicId(publicId)
+                .orElseThrow(() -> {
+                    log.warn("Product not found with publicId: {}", publicId);
+                    return new ResourceNotFoundException("Product", "publicId", publicId);
+                });
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 3: UNIT TEST -->
+        <div id="tab-code-test" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>src/test/java/com/enterprise/coreapi/service/ProductServiceImplTest.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeTest', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeTest">package com.enterprise.coreapi.service;
+
+import com.enterprise.coreapi.common.config.SecurityAuditorAware;
+import com.enterprise.coreapi.common.entity.Product;
+import com.enterprise.coreapi.common.exception.ApiException;
+import com.enterprise.coreapi.common.exception.ResourceNotFoundException;
+import com.enterprise.coreapi.dto.request.CreateProductRequest;
+import com.enterprise.coreapi.dto.request.UpdateProductRequest;
+import com.enterprise.coreapi.dto.response.ProductResponse;
+import com.enterprise.coreapi.mapper.ProductMapper;
+import com.enterprise.coreapi.repository.ProductRepository;
+import com.enterprise.coreapi.service.implementation.ProductServiceImpl;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("ProductServiceImpl Unit Tests")
+class ProductServiceImplTest {
+
+    @Mock
+    private ProductRepository productRepository;
+
+    @Mock
+    private ProductMapper productMapper;
+
+    @Mock
+    private SecurityAuditorAware securityAuditorAware;
+
+    @InjectMocks
+    private ProductServiceImpl productService;
+
+    @Nested
+    @DisplayName("createProduct Tests")
+    class CreateProductTests {
+
+        @Test
+        @DisplayName("Gecerli istek ile urun basariyla olusturulmalidir")
+        void shouldCreateProductSuccessfully() {
+            CreateProductRequest request = new CreateProductRequest("Laptop", "PROD-001", new BigDecimal("1500.00"), 10);
+            Product entity = new Product();
+            Product savedEntity = new Product();
+            UUID publicId = UUID.randomUUID();
+            savedEntity.setPublicId(publicId);
+
+            ProductResponse expectedResponse = new ProductResponse(publicId, "Laptop", "PROD-001", new BigDecimal("1500.00"), 10, "ACTIVE", Instant.now(), Instant.now());
+
+            when(productRepository.existsByCode("PROD-001")).thenReturn(false);
+            when(productMapper.toEntity(request)).thenReturn(entity);
+            when(productRepository.save(entity)).thenReturn(savedEntity);
+            when(productMapper.toResponse(savedEntity)).thenReturn(expectedResponse);
+
+            ProductResponse actualResponse = productService.createProduct(request);
+
+            assertThat(actualResponse).isNotNull();
+            assertThat(actualResponse.publicId()).isEqualTo(publicId);
+            verify(productRepository).save(entity);
+        }
+
+        @Test
+        @DisplayName("Mukerrer urun kodunda ApiException firlatilmalidir")
+        void shouldThrowExceptionWhenProductCodeAlreadyExists() {
+            CreateProductRequest request = new CreateProductRequest("Laptop", "PROD-001", new BigDecimal("1500.00"), 10);
+            when(productRepository.existsByCode("PROD-001")).thenReturn(true);
+
+            assertThatThrownBy(() -> productService.createProduct(request))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessageContaining("already exists");
+
+            verify(productRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("getProductByPublicId Tests")
+    class GetProductTests {
+
+        @Test
+        @DisplayName("Mevcut publicId ile urun basariyla donmelidir")
+        void shouldReturnProductWhenPublicIdExists() {
+            UUID publicId = UUID.randomUUID();
+            Product product = new Product();
+            product.setPublicId(publicId);
+            ProductResponse expectedResponse = new ProductResponse(publicId, "Laptop", "PROD-001", new BigDecimal("1500.00"), 10, "ACTIVE", Instant.now(), Instant.now());
+
+            when(productRepository.findByPublicId(publicId)).thenReturn(Optional.of(product));
+            when(productMapper.toResponse(product)).thenReturn(expectedResponse);
+
+            ProductResponse actualResponse = productService.getProductByPublicId(publicId);
+
+            assertThat(actualResponse).isNotNull();
+            assertThat(actualResponse.publicId()).isEqualTo(publicId);
+            verify(productRepository).findByPublicId(publicId);
+        }
+
+        @Test
+        @DisplayName("Bulunamayan publicId icin ResourceNotFoundException firlatilmalidir")
+        void shouldThrowResourceNotFoundExceptionWhenPublicIdDoesNotExist() {
+            UUID publicId = UUID.randomUUID();
+            when(productRepository.findByPublicId(publicId)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> productService.getProductByPublicId(publicId))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Product not found");
+
+            verify(productMapper, never()).toResponse(any());
+        }
+    }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg">Panoya kopyalandı!</span>
+  </div>
+
+  <script>
+    // Copy to Clipboard Utility
+    function copySnippet(elementId, btn) {
+      const el = document.getElementById(elementId);
+      const textToCopy = el.innerText || el.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast('Panoya başarıyla kopyalandı!');
+        if (btn) {
+          const originalText = btn.innerText;
+          btn.classList.add('copied');
+          btn.innerText = 'Kopyalandı!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerText = originalText;
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // Tab Switcher
+    function switchTab(evt, tabId) {
+      const container = evt.currentTarget.closest('.tabs-wrap');
+      const tabs = container.querySelectorAll('.tab-trigger');
+      const contents = container.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      contents.forEach(content => content.classList.remove('active'));
+
+      evt.currentTarget.classList.add('active');
+      const targetContent = container.querySelector('#' + tabId);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    }
+
+    // ScrollSpy for Sidebar
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('section');
+
+    window.addEventListener('scroll', () => {
+      let currentSectionId = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.scrollY >= sectionTop) {
+          currentSectionId = section.getAttribute('id');
+        }
+      });
+
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + currentSectionId) {
+          item.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

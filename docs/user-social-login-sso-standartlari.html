@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Spring Boot User Service with SSO &amp; Social Federation Blueprint</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #0f172a;
+      --panel-alt: #162035;
+      --panel-card: #1e293b;
+      --border: #243247;
+      --border-light: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --indigo: #6366f1;
+      --indigo-glow: rgba(99, 102, 241, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
+      --code-bg: #020617;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1324;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--indigo);
+      background: var(--indigo-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.6rem 0.75rem 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      color: #fff;
+      background: var(--panel-card);
+    }
+
+    .nav-item.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.1);
+      font-weight: 600;
+      border: 1px solid rgba(6, 182, 212, 0.25);
+    }
+
+    .nav-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .nav-item.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+    }
+
+    .sidebar-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 3rem 4rem 6rem;
+      max-width: 1250px;
+      overflow-x: hidden;
+    }
+
+    /* Hero / Header */
+    .hero {
+      margin-bottom: 3.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--indigo);
+      background: var(--indigo-glow);
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 2.35rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p.lead {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 920px;
+      margin-bottom: 1.5rem;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge-cyan { background: var(--cyan-glow); color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .badge-indigo { background: var(--indigo-glow); color: var(--indigo); border-color: rgba(99, 102, 241, 0.3); }
+    .badge-green { background: var(--green-glow); color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+    .badge-amber { background: var(--amber-glow); color: var(--amber); border-color: rgba(245, 158, 11, 0.3); }
+    .badge-rose { background: var(--rose-glow); color: var(--rose); border-color: rgba(244, 63, 94, 0.3); }
+    .badge-purple { background: var(--purple-glow); color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    /* Sections */
+    section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--indigo);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 980px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      body { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; }
+      main { padding: 2rem 1.5rem; }
+    }
+
+    /* Callouts */
+    .callout {
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      border-left: 4px solid;
+      background: var(--panel);
+    }
+
+    .callout-warning { border-color: var(--amber); background: rgba(245, 158, 11, 0.08); }
+    .callout-danger { border-color: var(--rose); background: rgba(244, 63, 94, 0.08); }
+    .callout-success { border-color: var(--green); background: rgba(16, 185, 129, 0.08); }
+    .callout-info { border-color: var(--cyan); background: rgba(6, 182, 212, 0.08); }
+    .callout-purple { border-color: var(--purple); background: rgba(168, 85, 247, 0.08); }
+
+    .callout-icon { font-size: 1.25rem; line-height: 1; margin-top: 0.1rem; }
+    .callout-content { font-size: 0.9rem; color: var(--text); }
+    .callout-content strong { color: #fff; }
+
+    /* Checklist */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      margin: 1.5rem 0;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.1rem 1.25rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.2s;
+    }
+
+    .check-item:hover {
+      border-color: var(--border-light);
+    }
+
+    .check-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--green-glow);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
+
+    .check-content h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+
+    .check-content p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Tabs Component */
+    .tabs-wrap {
+      margin: 1.5rem 0;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.35rem;
+      background: #070c18;
+      padding: 0.35rem;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      overflow-x: auto;
+    }
+
+    .tab-trigger {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.55rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tab-trigger:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-trigger.active {
+      color: var(--cyan);
+      background: var(--panel-card);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Code Box */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-box.standalone {
+      border-radius: var(--radius);
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 1.1rem;
+      background: #091122;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .dot-group {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+
+    .copy-btn {
+      background: var(--panel);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .copy-btn:hover {
+      background: var(--border-light);
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+    }
+
+    pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      margin: 1.25rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #0d1527;
+      padding: 0.85rem 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.84em;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #f1f5f9;
+    }
+
+    /* Architecture Diagram Box (SVG) */
+    .arch-diagram-card {
+      background: #050a15;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+
+    .arch-svg {
+      width: 100%;
+      max-width: 1000px;
+      height: auto;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #000;
+      padding: 0.65rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand-box">
+      <span class="brand-badge">OAuth 2.1 &bull; OIDC &bull; Social</span>
+      <h2 class="brand-title">User &amp; Identity Service</h2>
+      <p class="brand-subtitle">Enterprise SSO &amp; Social Federation Blueprint</p>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">MİMARİ &amp; GÜVENLİK</div>
+      <a href="#s1-architecture" class="nav-item active">
+        <span class="nav-num">1</span>
+        <span>Mimari İlkeler &amp; Broker</span>
+      </a>
+      <a href="#s2-acceptance-criteria" class="nav-item">
+        <span class="nav-num">2</span>
+        <span>Kabul Kriterleri &amp; Kurallar</span>
+      </a>
+      <a href="#s3-architecture-diagram" class="nav-item">
+        <span class="nav-num">3</span>
+        <span>Kimlik Federasyon Diyagramı</span>
+      </a>
+
+      <div class="nav-label">VERİ &amp; KONFİGÜRASYON</div>
+      <a href="#s4-database-schema" class="nav-item">
+        <span class="nav-num">4</span>
+        <span>PostgreSQL Tablo Şeması</span>
+      </a>
+      <a href="#s5-dependencies-config" class="nav-item">
+        <span class="nav-num">5</span>
+        <span>Maven &amp; application.yml</span>
+      </a>
+
+      <div class="nav-label">JAVA REFERANS KODLARI</div>
+      <a href="#s6-java-implementations" class="nav-item">
+        <span class="nav-num">6</span>
+        <span>Çekirdek Java Uygulamaları</span>
+      </a>
+      <a href="#s7-api-contract" class="nav-item">
+        <span class="nav-num">7</span>
+        <span>REST API Sözleşmesi</span>
+      </a>
+      <a href="#s8-domain-events" class="nav-item">
+        <span class="nav-num">8</span>
+        <span>Olay Güdümlü Event'ler</span>
+      </a>
+      <a href="#s9-threat-model" class="nav-item">
+        <span class="nav-num">9</span>
+        <span>Güvenlik Tehdit Modeli</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      Kurumsal Kimlik &amp; Federasyon Standardı &copy; 2026
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    
+    <!-- Hero Header -->
+    <header class="hero">
+      <div class="hero-eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        Enterprise Identity &amp; Access Management (IAM)
+      </div>
+      <h1>Modern Enterprise Spring Boot User Service with SSO &amp; Social Federation Blueprint</h1>
+      <p class="lead">
+        Gelecekteki kurumsal Java Spring Boot projelerinde ortak çekirdek (core/starter) modül olarak kullanılmak üzere tasarlanmış; <strong>OAuth 2.1</strong>, <strong>OIDC 1.0</strong>, <strong>Social Login (Google &amp; GitHub)</strong> kimlik federasyonunu, Just-In-Time (JIT) kullanıcı oluşturmayı, güvenli hesap eşlemeyi (Account Linking) ve sıfır in-memory bağımlılığını standartlaştıran üretim kılavuzudur.
+      </p>
+
+      <div class="badges-row">
+        <span class="badge badge-indigo">Spring Boot 4.1.1</span>
+        <span class="badge badge-cyan">Spring Authorization Server</span>
+        <span class="badge badge-green">OAuth 2.1 &amp; OIDC 1.0</span>
+        <span class="badge badge-amber">Google &amp; GitHub Federation</span>
+        <span class="badge badge-purple">Argon2id &amp; Passwordless Hybrid</span>
+        <span class="badge badge-rose">Pre-Account Takeover Defense</span>
+        <span class="badge">Zero In-Memory State</span>
+      </div>
+    </header>
+
+    <!-- BÖLÜM 1: MİMARİ İLKELER -->
+    <section id="s1-architecture">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">1</span>
+          Mimari İlkeler ve Kimlik Federasyonu Modeli
+        </h2>
+        <p class="section-desc">
+          Kurumsal mikroservis ekosistemlerinde kimlik ve yetkilendirmenin tek bir merkezden, modüler ve güvenli yönetilmesi için benimsenen temel tasarım ilkeleri.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--indigo);">
+          <div class="card-title" style="color: var(--indigo);">🏗️ Hexagonal &amp; Clean Architecture + DDD</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Kullanıcı etki alanı (User Domain) veritabanı sürücülerinden ve web framework'lerinden tamamen izole edilmiştir. Entity nesneleri zengin iş kuralları barındırır (Rich Domain Model). Şifre doğrulama, sosyal hesap bağlama ve durum geçişleri entity metotları üzerinden işletilir.
+          </p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--cyan);">
+          <div class="card-title" style="color: var(--cyan);">🌉 Identity Broker / Federation Gateway Modeli</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            İç ve dış istemciler (SPA, Mobil, Mikroservisler) <strong>asla doğrudan Google veya GitHub ile iletişime geçmez</strong>. Sistemimiz, dış sağlayıcılar karşısında güvenli bir <code>OAuth2 Client</code>, kendi iç ekosistemi karşısında ise tek otorite olan <code>Spring Authorization Server</code> olarak konumlanır. Tüm JWT'ler merkezi IdP tarafından imzalanır.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--green);">
+          <div class="card-title" style="color: var(--green);">🔒 Değişmezlik (Immutability) &amp; Java Records</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Tüm REST DTO'ları, Request/Response nesneleri ve Domain Event'leri Java 17/21 <code>record</code> tipleriyle tanımlanır. Bu sayede thread-safety garanti altına alınır, yan etkiler önlenir ve gereksiz boilerplate kod ortadan kaldırılır.
+          </p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--amber);">
+          <div class="card-title" style="color: var(--amber);">📋 Soft Delete &amp; Tam Denetim İzi (Audit)</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Kullanıcı tablolarında fiziksel silme (HARD DELETE) kesinlikle yasaklanmıştır. Silme işlemleri <code>status='DELETED'</code> durumuna çekilerek yapılır (<code>@SQLDelete</code> &amp; <code>@SQLRestriction</code>). Tüm oturum ve hesap bağlama hareketleri <code>user_audit_log</code> tablosunda saklanır.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">ℹ️</div>
+        <div class="callout-content">
+          <strong>Neden Identity Broker Modeli?</strong> İç mikroservislerinizin onlarca farklı sosyal sağlayıcının (Google, GitHub, Apple vb.) public key'lerini indirmesi, token formatlarını parse etmesi veya farklı claim yapılarını yönetmesi mimari bir kabustur. Broker modeli sayesinde mikroservisler yalnızca <strong>kendi Authorization Server'ının JWKS anahtarını</strong> bilir; standart kurumsal claim'lerle (<code>user_id</code>, <code>roles</code>, <code>auth_provider</code>) çalışır.
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 2: KABUL KRİTERLERİ -->
+    <section id="s2-acceptance-criteria">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">2</span>
+          Kabul Kriterleri (Acceptance Criteria &amp; Security Rules)
+        </h2>
+        <p class="section-desc">
+          Kurumsal SSO ve Sosyal Giriş modülünün üretim ortamında karşılaması zorunlu güvenlik ve işlevsellik sözleşmeleri:
+        </p>
+      </div>
+
+      <div class="checklist-grid">
+        <div class="check-item">
+          <span class="check-icon">✓</span>
+          <div class="check-content">
+            <h4>1. Karma Kimlik Yönetimi (Hybrid Identity: Local Password &amp; Passwordless Social)</h4>
+            <p>Sistem hem yerel kullanıcı adı/şifreye sahip kullanıcıları hem de yalnızca sosyal hesapla (Google/GitHub) giriş yapan şifresiz kullanıcıları destekler. Sosyal kullanıcıların <code>password_hash</code> alanı veritabanında <code>NULL</code> kalabilir; kullanıcı dilediğinde profilinden yerel parola belirleyebilir.</p>
+          </div>
+        </div>
+
+        <div class="check-item">
+          <span class="check-icon">✓</span>
+          <div class="check-content">
+            <h4>2. Just-In-Time (JIT) Provisioning &amp; Otomatik Rol Atama</h4>
+            <p>Sosyal sağlayıcı üzerinden ilk kez başarılı giriş yapan kullanıcı için veritabanında otomatik <code>User</code> ve <code>UserSocialAccount</code> kaydı açılır. Varsayılan <code>ROLE_USER</code> atanır ve <code>UserRegisteredEvent</code> fırlatılır.</p>
+          </div>
+        </div>
+
+        <div class="check-item">
+          <span class="check-icon">✓</span>
+          <div class="check-content">
+            <h4>3. Güvenli Account Linking &amp; Pre-Account Takeover Koruması</h4>
+            <p>Aynı e-posta adresine sahip mevcut bir yerel hesap varsa, sosyal hesap <strong>yalnızca sağlayıcıdan <code>email_verified == true</code> dönüyorsa</strong> otomatik eşleştirilir. Doğrulanmamış veya şüpheli e-postalarda otomatik eşleme reddedilir; hesap ele geçirme (hijacking) zafiyeti engellenir.</p>
+          </div>
+        </div>
+
+        <div class="check-item">
+          <span class="check-icon">✓</span>
+          <div class="check-content">
+            <h4>4. Yüksek Güvenlikli Parola Hashing (Argon2id / Adaptive BCrypt)</h4>
+            <p>Yerel şifrelerde donanım tabanlı saldırılara (GPU/ASIC) karşı dirençli <strong>Argon2id</strong> (veya en az cost 12 BCrypt) kullanılır. Düz metin parolalar loglara veya heap dump'lara asla yansıtılmaz.</p>
+          </div>
+        </div>
+
+        <div class="check-item">
+          <span class="check-icon">✓</span>
+          <div class="check-content">
+            <h4>5. PII Maskeleme &amp; Brute-Force Kilitleme</h4>
+            <p>Tüm log çıktılarında e-posta, kimlik numarası ve token'lar maskelenir. 5 ardışık başarısız yerel oturum açma denemesinde hesap 15 dakika boyunca geçici olarak kilitlenir (<code>LOCKED</code> / <code>locked_until</code>).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 3: MİMARİ AKIŞ DİYAGRAMI -->
+    <section id="s3-architecture-diagram">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">3</span>
+          Kimlik Federasyon &amp; SSO Mimari Akışı (Architecture Diagram)
+        </h2>
+        <p class="section-desc">
+          Kullanıcı, İstemci SPA, Kurumsal Identity Broker ve Sosyal Sağlayıcılar (Google/GitHub) arasındaki uçtan uca etkileşim modeli:
+        </p>
+      </div>
+
+      <div class="arch-diagram-card">
+        <svg class="arch-svg" viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gradCard" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1e293b"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+            <linearGradient id="gradSso" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#312e81"/>
+              <stop offset="100%" stop-color="#1e1b4b"/>
+            </linearGradient>
+            <linearGradient id="gradGoogle" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#854d0e"/>
+              <stop offset="100%" stop-color="#451a03"/>
+            </linearGradient>
+            <linearGradient id="gradGh" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#334155"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+            <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#06b6d4" flood-opacity="0.4"/>
+            </filter>
+            <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#06b6d4" />
+            </marker>
+            <marker id="arrIndigo" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#818cf8" />
+            </marker>
+          </defs>
+
+          <!-- Node: User / Client -->
+          <rect x="40" y="70" width="180" height="110" rx="10" fill="url(#gradCard)" stroke="#334155" stroke-width="2"/>
+          <text x="130" y="105" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="700">İSTEMCİ (CLIENT)</text>
+          <text x="130" y="125" text-anchor="middle" fill="#f1f5f9" font-size="12">SPA / Mobil Uygulama</text>
+          <text x="130" y="150" text-anchor="middle" fill="#94a3b8" font-size="11">PKCE (S256) &bull; OAuth 2.1</text>
+
+          <!-- Node: Enterprise SSO Server -->
+          <rect x="360" y="50" width="240" height="200" rx="12" fill="url(#gradSso)" stroke="#6366f1" stroke-width="2.5" filter="url(#glowCyan)"/>
+          <text x="480" y="85" text-anchor="middle" fill="#a5b4fc" font-size="14" font-weight="800">ENTERPRISE SSO SERVER</text>
+          <text x="480" y="105" text-anchor="middle" fill="#38bdf8" font-size="12">Spring Authorization Server</text>
+          <line x1="380" y1="120" x2="580" y2="120" stroke="#4338ca" stroke-width="1"/>
+          <text x="480" y="142" text-anchor="middle" fill="#e2e8f0" font-size="11">&bull; Identity Broker &amp; Gateway</text>
+          <text x="480" y="162" text-anchor="middle" fill="#e2e8f0" font-size="11">&bull; JIT Provisioning &amp; Linking</text>
+          <text x="480" y="182" text-anchor="middle" fill="#e2e8f0" font-size="11">&bull; RSA KeyStore JWKS Signer</text>
+          <text x="480" y="202" text-anchor="middle" fill="#e2e8f0" font-size="11">&bull; Custom Claims Enriched JWT</text>
+          <text x="480" y="228" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="700">PORT: 9000</text>
+
+          <!-- External IdP: Google -->
+          <rect x="740" y="40" width="180" height="90" rx="10" fill="url(#gradGoogle)" stroke="#eab308" stroke-width="1.5"/>
+          <text x="830" y="75" text-anchor="middle" fill="#fde047" font-size="13" font-weight="700">GOOGLE OIDC</text>
+          <text x="830" y="95" text-anchor="middle" fill="#f8fafc" font-size="11">accounts.google.com</text>
+          <text x="830" y="112" text-anchor="middle" fill="#cbd5e1" font-size="10">email_verified claim</text>
+
+          <!-- External IdP: GitHub -->
+          <rect x="740" y="160" width="180" height="90" rx="10" fill="url(#gradGh)" stroke="#64748b" stroke-width="1.5"/>
+          <text x="830" y="195" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="700">GITHUB OAUTH2</text>
+          <text x="830" y="215" text-anchor="middle" fill="#94a3b8" font-size="11">api.github.com/user</text>
+          <text x="830" y="232" text-anchor="middle" fill="#cbd5e1" font-size="10">Primary Verified Email</text>
+
+          <!-- Node: PostgreSQL Database -->
+          <rect x="360" y="330" width="240" height="110" rx="10" fill="url(#gradCard)" stroke="#06b6d4" stroke-width="2"/>
+          <text x="480" y="365" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="700">POSTGRESQL STORAGE</text>
+          <text x="480" y="388" text-anchor="middle" fill="#cbd5e1" font-size="11">users &bull; user_social_accounts</text>
+          <text x="480" y="408" text-anchor="middle" fill="#94a3b8" font-size="11">oauth2_authorization &bull; audit_log</text>
+          <text x="480" y="425" text-anchor="middle" fill="#4ade80" font-size="10">Zero In-Memory &bull; Full Persistence</text>
+
+          <!-- Resource Server / Microservices -->
+          <rect x="40" y="330" width="180" height="110" rx="10" fill="url(#gradCard)" stroke="#334155" stroke-width="1.5"/>
+          <text x="130" y="365" text-anchor="middle" fill="#a855f7" font-size="13" font-weight="700">MIKROSERVİSLER</text>
+          <text x="130" y="388" text-anchor="middle" fill="#cbd5e1" font-size="11">OAuth2 Resource Server</text>
+          <text x="130" y="408" text-anchor="middle" fill="#94a3b8" font-size="10">Stateless JWT Validation</text>
+          <text x="130" y="425" text-anchor="middle" fill="#64748b" font-size="10">Offline JWKS Caching</text>
+
+          <!-- Connections -->
+          <!-- 1. Client to SSO -->
+          <path d="M 220 110 L 360 110" stroke="#06b6d4" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arr)"/>
+          <text x="290" y="100" text-anchor="middle" fill="#38bdf8" font-size="10">1. /oauth2/authorize (PKCE)</text>
+
+          <!-- 2. SSO to Google -->
+          <path d="M 600 90 L 740 80" stroke="#eab308" stroke-width="1.8" marker-end="url(#arr)"/>
+          <text x="670" y="75" text-anchor="middle" fill="#fde047" font-size="10">2a. Google OIDC</text>
+
+          <!-- 3. SSO to GitHub -->
+          <path d="M 600 170 L 740 190" stroke="#cbd5e1" stroke-width="1.8" marker-end="url(#arr)"/>
+          <text x="670" y="195" text-anchor="middle" fill="#cbd5e1" font-size="10">2b. GitHub OAuth2</text>
+
+          <!-- 4. SSO to Database -->
+          <path d="M 480 250 L 480 330" stroke="#06b6d4" stroke-width="2" marker-end="url(#arr)"/>
+          <text x="545" y="295" text-anchor="middle" fill="#06b6d4" font-size="10">3. JIT Provisioning / Query</text>
+
+          <!-- 5. SSO mints token to Client -->
+          <path d="M 360 145 L 220 145" stroke="#4ade80" stroke-width="2" marker-end="url(#arr)"/>
+          <text x="290" y="160" text-anchor="middle" fill="#4ade80" font-size="10">4. Signed Enterprise JWT</text>
+
+          <!-- 6. Client to Resource Server -->
+          <path d="M 130 180 L 130 330" stroke="#818cf8" stroke-width="2" marker-end="url(#arrIndigo)"/>
+          <text x="80" y="260" text-anchor="middle" fill="#818cf8" font-size="10">5. Bearer JWT</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 4: VERİTABANI ŞEMASI -->
+    <section id="s4-database-schema">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">4</span>
+          Veritabanı Şeması ve PostgreSQL Tablo Yapısı
+        </h2>
+        <p class="section-desc">
+          Karma kimlik modelini (yerel şifreli + şifresiz sosyal hesaplar), rol/yetki matrisini ve Spring Authorization Server tablolarını yöneten PostgreSQL DDL şeması.
+        </p>
+      </div>
+
+      <div class="code-box standalone">
+        <div class="code-bar">
+          <div class="code-bar-title">
+            <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+            <span>src/main/resources/db/migration/V1__init_user_identity_schema.sql</span>
+          </div>
+          <button class="copy-btn" onclick="copySnippet('codeSqlDb', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeSqlDb">-- =======================================================================
+-- 1. USERS TABLOSU (Karma Kimlik: Yerel Şifre veya Şifresiz Sosyal Kullanıcı)
+-- =======================================================================
+CREATE TABLE IF NOT EXISTS users (
+    id UUID NOT NULL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) DEFAULT NULL, -- Sosyal kullanıcılar için NULL kalabilir!
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE', -- PENDING_VERIFICATION, ACTIVE, LOCKED, DELETED
+    failed_attempts INT NOT NULL DEFAULT 0,
+    locked_until TIMESTAMPTZ DEFAULT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version BIGINT NOT NULL DEFAULT 0 -- Optimistic Locking
+);
+
+-- Silinmemiş kullanıcılar için büyük/küçük harf duyarsız benzersiz e-posta indeksi
+CREATE UNIQUE INDEX idx_users_email_lower ON users (LOWER(email)) WHERE status != 'DELETED';
+CREATE INDEX idx_users_status ON users (status);
+
+-- =======================================================================
+-- 2. USER_SOCIAL_ACCOUNTS TABLOSU (Google, GitHub vb. Federasyon Bağlantıları)
+-- =======================================================================
+CREATE TABLE IF NOT EXISTS user_social_accounts (
+    id UUID NOT NULL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL,            -- 'GOOGLE', 'GITHUB'
+    provider_user_id VARCHAR(255) NOT NULL,   -- Google sub claim veya GitHub user id
+    provider_email VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_provider_account UNIQUE (provider, provider_user_id)
+);
+
+CREATE INDEX idx_social_user_id ON user_social_accounts (user_id);
+CREATE INDEX idx_social_provider_lookup ON user_social_accounts (provider, provider_user_id);
+
+-- =======================================================================
+-- 3. ROLES & PERMISSIONS TABLOLARI (Granüler RBAC)
+-- =======================================================================
+CREATE TABLE IF NOT EXISTS roles (
+    id VARCHAR(50) NOT NULL PRIMARY KEY, -- 'ROLE_USER', 'ROLE_ADMIN'
+    description VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+    id VARCHAR(100) NOT NULL PRIMARY KEY, -- 'user:read', 'user:write'
+    description VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users_roles (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id VARCHAR(50) NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS roles_permissions (
+    role_id VARCHAR(50) NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    permission_id VARCHAR(100) NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    PRIMARY KEY (role_id, permission_id)
+);
+
+-- =======================================================================
+-- 4. USER_AUDIT_LOG TABLOSU (Güvenlik Denetim İzi)
+-- =======================================================================
+CREATE TABLE IF NOT EXISTS user_audit_log (
+    id UUID NOT NULL PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    auth_type VARCHAR(50) NOT NULL,     -- 'LOCAL', 'SOCIAL_GOOGLE', 'SOCIAL_GITHUB'
+    action VARCHAR(100) NOT NULL,       -- 'LOGIN_SUCCESS', 'LOGIN_FAILURE', 'ACCOUNT_LINKED'
+    ip_address VARCHAR(45) NOT NULL,
+    user_agent VARCHAR(500),
+    details TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_audit_user_created ON user_audit_log (user_id, created_at DESC);
+
+-- =======================================================================
+-- 5. SPRING AUTHORIZATION SERVER STANDART TABLOLARI (PostgreSQL)
+-- =======================================================================
+CREATE TABLE IF NOT EXISTS oauth2_registered_client (
+    id VARCHAR(100) NOT NULL PRIMARY KEY,
+    client_id VARCHAR(100) NOT NULL,
+    client_id_issued_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    client_secret VARCHAR(200) DEFAULT NULL,
+    client_secret_expires_at TIMESTAMPTZ DEFAULT NULL,
+    client_name VARCHAR(200) NOT NULL,
+    client_authentication_methods VARCHAR(1000) NOT NULL,
+    authorization_grant_types VARCHAR(1000) NOT NULL,
+    redirect_uris VARCHAR(1000) DEFAULT NULL,
+    post_logout_redirect_uris VARCHAR(1000) DEFAULT NULL,
+    scopes VARCHAR(1000) NOT NULL,
+    client_settings VARCHAR(2000) NOT NULL,
+    token_settings VARCHAR(2000) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS oauth2_authorization (
+    id VARCHAR(100) NOT NULL PRIMARY KEY,
+    registered_client_id VARCHAR(100) NOT NULL,
+    principal_name VARCHAR(200) NOT NULL,
+    authorization_grant_type VARCHAR(100) NOT NULL,
+    authorized_scopes VARCHAR(1000) DEFAULT NULL,
+    attributes TEXT DEFAULT NULL,
+    state VARCHAR(500) DEFAULT NULL,
+    authorization_code_value TEXT DEFAULT NULL,
+    authorization_code_issued_at TIMESTAMPTZ DEFAULT NULL,
+    authorization_code_expires_at TIMESTAMPTZ DEFAULT NULL,
+    authorization_code_metadata TEXT DEFAULT NULL,
+    access_token_value TEXT DEFAULT NULL,
+    access_token_issued_at TIMESTAMPTZ DEFAULT NULL,
+    access_token_expires_at TIMESTAMPTZ DEFAULT NULL,
+    access_token_metadata TEXT DEFAULT NULL,
+    access_token_type VARCHAR(100) DEFAULT NULL,
+    access_token_scopes VARCHAR(1000) DEFAULT NULL,
+    oidc_id_token_value TEXT DEFAULT NULL,
+    oidc_id_token_issued_at TIMESTAMPTZ DEFAULT NULL,
+    oidc_id_token_expires_at TIMESTAMPTZ DEFAULT NULL,
+    oidc_id_token_metadata TEXT DEFAULT NULL,
+    refresh_token_value TEXT DEFAULT NULL,
+    refresh_token_issued_at TIMESTAMPTZ DEFAULT NULL,
+    refresh_token_expires_at TIMESTAMPTZ DEFAULT NULL,
+    refresh_token_metadata TEXT DEFAULT NULL,
+    user_code_value TEXT DEFAULT NULL,
+    user_code_issued_at TIMESTAMPTZ DEFAULT NULL,
+    user_code_expires_at TIMESTAMPTZ DEFAULT NULL,
+    user_code_metadata TEXT DEFAULT NULL,
+    device_code_value TEXT DEFAULT NULL,
+    device_code_issued_at TIMESTAMPTZ DEFAULT NULL,
+    device_code_expires_at TIMESTAMPTZ DEFAULT NULL,
+    device_code_metadata TEXT DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
+    registered_client_id VARCHAR(100) NOT NULL,
+    principal_name VARCHAR(200) NOT NULL,
+    authorities VARCHAR(1000) NOT NULL,
+    PRIMARY KEY (registered_client_id, principal_name)
+);</code></pre>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 5: MAVEN & CONFIGURATION -->
+    <section id="s5-dependencies-config">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">5</span>
+          Maven Bağımlılıkları ve Konfigürasyon
+        </h2>
+        <p class="section-desc">
+          Spring Boot 4.1.1 uyumlu pom.xml bağımlılıkları ve Google/GitHub OAuth2 istemci entegrasyonu içeren kurumsal application.yml konfigürasyonu.
+        </p>
+      </div>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-pom')">1. pom.xml</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-yml')">2. application.yml</button>
+        </div>
+
+        <!-- TAB 1: POM -->
+        <div id="tab-pom" class="tab-content active">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>pom.xml (Spring Boot 4.1.1 IAM Starter)</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codePom', this)">Kopyala</button>
+            </div>
+            <pre><code id="codePom">&lt;dependencies&gt;
+    &lt;!-- 1. Spring Authorization Server (OAuth 2.1 &amp; OIDC 1.0 IdP) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-oauth2-authorization-server&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 2. OAuth2 Client (Google &amp; GitHub Kimlik Federasyonu için) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-oauth2-client&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 3. Spring Data JPA &amp; PostgreSQL Driver --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+        &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 4. Veritabanı Migrasyonu (Flyway) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+        &lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+        &lt;artifactId&gt;flyway-database-postgresql&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 5. Güvenlik, Validation &amp; Web --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 6. Argon2id Şifreleme Desteği (BouncyCastle) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.bouncycastle&lt;/groupId&gt;
+        &lt;artifactId&gt;bcprov-jdk18on&lt;/artifactId&gt;
+        &lt;version&gt;1.78.1&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 2: YML -->
+        <div id="tab-yml" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>src/main/resources/application.yml</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeYml', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeYml">server:
+  port: 9000
+
+spring:
+  application:
+    name: enterprise-identity-service
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:identity_auth_db}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          github:
+            client-id: ${GITHUB_CLIENT_ID:your-github-client-id}
+            client-secret: ${GITHUB_CLIENT_SECRET:your-github-client-secret}
+            scope:
+              - read:user
+              - user:email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+# SSO &amp; Kurumsal Token Ayarları
+sso:
+  issuer-url: ${SSO_ISSUER_URL:http://localhost:9000}
+  keystore:
+    location: classpath:keystore/auth-server.p12
+    password: ${KEYSTORE_PASSWORD:enterprise_sso_secret_2026}
+    alias: ${KEYSTORE_KEY_ALIAS:sso-jwt-key}
+    key-password: ${KEYSTORE_KEY_PASSWORD:enterprise_sso_secret_2026}
+  token:
+    access-token-time-to-live: 10m
+    refresh-token-time-to-live: 30d</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 6: ÇEKİRDEK JAVA UYGULAMALARI -->
+    <section id="s6-java-implementations">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">6</span>
+          Çekirdek Java Uygulama Kodları (Reference Implementations)
+        </h2>
+        <p class="section-desc">
+          Üretim standartlarında, derlenebilir ve eksiksiz yazılmış Java sınıfları (Entity, OAuth2UserService, SuccessHandler, SecurityConfig, TokenCustomizer ve ExceptionHandler).
+        </p>
+      </div>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-entity')">1. User Entities</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-oauth-service')">2. CustomOAuth2UserService</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-success-handler')">3. SuccessHandler</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-sec-cfg')">4. SecurityConfig</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-customizer')">5. CustomTokenCustomizer</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-exception')">6. GlobalExceptionHandler</button>
+        </div>
+
+        <!-- TAB 1: ENTITIES -->
+        <div id="tab-entity" class="tab-content active">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/identity/domain/User.java &amp; UserSocialAccount.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeEntities', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeEntities">package com.enterprise.identity.domain;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import java.time.Instant;
+import java.util.*;
+
+@Entity
+@Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET status = 'DELETED', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND version = ?")
+@SQLRestriction("status != 'DELETED'")
+public class User {
+
+    @Id
+    private UUID id;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(name = "password_hash")
+    private String passwordHash; // Sosyal kullanıcılar için NULL olabilir
+
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status;
+
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts;
+
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Version
+    private Long version;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set&lt;UserSocialAccount&gt; socialAccounts = new HashSet&lt;&gt;();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set&lt;Role&gt; roles = new HashSet&lt;&gt;();
+
+    protected User() {}
+
+    public User(UUID id, String email, String passwordHash, String firstName, String lastName) {
+        this.id = id != null ? id : UUID.randomUUID();
+        this.email = email.toLowerCase().trim();
+        this.passwordHash = passwordHash;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.status = UserStatus.ACTIVE;
+        this.failedAttempts = 0;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    public boolean hasLocalPassword() {
+        return this.passwordHash != null &amp;&amp; !this.passwordHash.isBlank();
+    }
+
+    public void setPassword(String newPasswordHash) {
+        this.passwordHash = Objects.requireNonNull(newPasswordHash, "Password hash cannot be null");
+        this.updatedAt = Instant.now();
+    }
+
+    public void linkSocialAccount(String provider, String providerUserId, String providerEmail) {
+        boolean exists = socialAccounts.stream()
+                .anyMatch(sa -> sa.getProvider().equalsIgnoreCase(provider));
+        if (exists) {
+            throw new IllegalStateException("Provider " + provider + " is already linked to this user");
+        }
+        UserSocialAccount account = new UserSocialAccount(UUID.randomUUID(), this, provider.toUpperCase(), providerUserId, providerEmail);
+        this.socialAccounts.add(account);
+        this.updatedAt = Instant.now();
+    }
+
+    public void unlinkSocialAccount(String provider) {
+        if (!hasLocalPassword() &amp;&amp; this.socialAccounts.size() &lt;= 1) {
+            throw new IllegalStateException("Cannot unlink the only login method. Please set a local password first.");
+        }
+        this.socialAccounts.removeIf(sa -> sa.getProvider().equalsIgnoreCase(provider));
+        this.updatedAt = Instant.now();
+    }
+
+    // Getters and helper methods
+    public UUID getId() { return id; }
+    public String getEmail() { return email; }
+    public String getPasswordHash() { return passwordHash; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public UserStatus getStatus() { return status; }
+    public Set&lt;UserSocialAccount&gt; getSocialAccounts() { return Collections.unmodifiableSet(socialAccounts); }
+    public Set&lt;Role&gt; getRoles() { return Collections.unmodifiableSet(roles); }
+    public void addRole(Role role) { this.roles.add(role); }
+}
+
+// -------------------------------------------------------------
+// UserSocialAccount Entity
+// -------------------------------------------------------------
+@Entity
+@Table(name = "user_social_accounts", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_provider_account", columnNames = {"provider", "provider_user_id"})
+})
+public class UserSocialAccount {
+
+    @Id
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(nullable = false, length = 50)
+    private String provider;
+
+    @Column(name = "provider_user_id", nullable = false)
+    private String providerUserId;
+
+    @Column(name = "provider_email")
+    private String providerEmail;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    protected UserSocialAccount() {}
+
+    public UserSocialAccount(UUID id, User user, String provider, String providerUserId, String providerEmail) {
+        this.id = id != null ? id : UUID.randomUUID();
+        this.user = user;
+        this.provider = provider;
+        this.providerUserId = providerUserId;
+        this.providerEmail = providerEmail;
+        this.createdAt = Instant.now();
+    }
+
+    public UUID getId() { return id; }
+    public User getUser() { return user; }
+    public String getProvider() { return provider; }
+    public String getProviderUserId() { return providerUserId; }
+    public String getProviderEmail() { return providerEmail; }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 2: OAUTH SERVICE -->
+        <div id="tab-oauth-service" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/identity/service/CustomOAuth2UserService.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeOAuthService', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeOAuthService">package com.enterprise.identity.service;
+
+import com.enterprise.identity.domain.Role;
+import com.enterprise.identity.domain.User;
+import com.enterprise.identity.domain.UserSocialAccount;
+import com.enterprise.identity.event.SocialAccountLinkedEvent;
+import com.enterprise.identity.event.UserRegisteredEvent;
+import com.enterprise.identity.repository.RoleRepository;
+import com.enterprise.identity.repository.UserRepository;
+import com.enterprise.identity.repository.UserSocialAccountRepository;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private final UserRepository userRepository;
+    private final UserSocialAccountRepository socialAccountRepository;
+    private final RoleRepository roleRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public CustomOAuth2UserService(UserRepository userRepository,
+                                   UserSocialAccountRepository socialAccountRepository,
+                                   RoleRepository roleRepository,
+                                   ApplicationEventPublisher eventPublisher) {
+        this.userRepository = userRepository;
+        this.socialAccountRepository = socialAccountRepository;
+        this.roleRepository = roleRepository;
+        this.eventPublisher = eventPublisher;
+    }
+
+    @Override
+    @Transactional
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
+        String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
+
+        // 1. Profil Bilgilerini Sağlayıcıya Göre Ayrıştır (Parsing)
+        FederatedProfile profile = extractProfile(registrationId, oAuth2User, userRequest);
+
+        // 2. Pre-Account Takeover Koruması: E-posta doğrulanmış mı?
+        if (!profile.isEmailVerified()) {
+            throw new OAuth2AuthenticationException(new OAuth2Error("email_not_verified"),
+                    "Sosyal sağlayıcı e-posta adresini doğrulamadığı için hesap ilişkilendirilemez: " + profile.email());
+        }
+
+        // 3. JIT Provisioning ve Güvenli Hesap Eşleme (Account Linking)
+        User user = resolveOrCreateUser(profile);
+
+        // 4. Kurumsal Granted Authorities Listesini Oluştur
+        Set&lt;SimpleGrantedAuthority&gt; authorities = user.getRoles().stream()
+                .map(r -> new SimpleGrantedAuthority(r.getId()))
+                .collect(Collectors.toSet());
+
+        Map&lt;String, Object&gt; attributes = new HashMap&lt;&gt;(oAuth2User.getAttributes());
+        attributes.put("user_id", user.getId().toString());
+        attributes.put("auth_provider", profile.provider());
+
+        String nameAttributeKey = userRequest.getClientRegistration()
+                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+
+        return new DefaultOAuth2User(authorities, attributes, nameAttributeKey);
+    }
+
+    private User resolveOrCreateUser(FederatedProfile profile) {
+        // A. Sosyal hesap zaten bağlı mı?
+        Optional&lt;UserSocialAccount&gt; existingSocial = socialAccountRepository
+                .findByProviderAndProviderUserId(profile.provider(), profile.providerUserId());
+
+        if (existingSocial.isPresent()) {
+            return existingSocial.get().getUser();
+        }
+
+        // B. Aynı e-postaya sahip yerel kullanıcı var mı? (Account Linking)
+        Optional&lt;User&gt; existingUser = userRepository.findByEmailIgnoreCase(profile.email());
+
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            user.linkSocialAccount(profile.provider(), profile.providerUserId(), profile.email());
+            userRepository.save(user);
+            eventPublisher.publishEvent(new SocialAccountLinkedEvent(user.getId(), profile.provider(), profile.email()));
+            return user;
+        }
+
+        // C. Yeni Kullanıcı Oluştur (Just-In-Time Provisioning)
+        User newUser = new User(UUID.randomUUID(), profile.email(), null, profile.firstName(), profile.lastName());
+        Role userRole = roleRepository.findById("ROLE_USER")
+                .orElseGet(() -> roleRepository.save(new Role("ROLE_USER", "Standart Kullanıcı")));
+        newUser.addRole(userRole);
+        newUser.linkSocialAccount(profile.provider(), profile.providerUserId(), profile.email());
+
+        User savedUser = userRepository.save(newUser);
+        eventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getId(), savedUser.getEmail(), "FEDERATED_" + profile.provider()));
+        return savedUser;
+    }
+
+    private FederatedProfile extractProfile(String provider, OAuth2User oAuth2User, OAuth2UserRequest request) {
+        if ("GOOGLE".equals(provider)) {
+            String sub = oAuth2User.getAttribute("sub");
+            String email = oAuth2User.getAttribute("email");
+            Boolean emailVerified = oAuth2User.getAttribute("email_verified");
+            String givenName = oAuth2User.getAttribute("given_name");
+            String familyName = oAuth2User.getAttribute("family_name");
+            return new FederatedProfile("GOOGLE", sub, email, Boolean.TRUE.equals(emailVerified),
+                    givenName != null ? givenName : "GoogleUser", familyName != null ? familyName : "");
+        } else if ("GITHUB".equals(provider)) {
+            String id = String.valueOf(oAuth2User.getAttribute("id"));
+            String name = oAuth2User.getAttribute("name");
+            String[] names = (name != null ? name : "GitHub User").split(" ", 2);
+            String firstName = names[0];
+            String lastName = names.length > 1 ? names[1] : "";
+
+            // GitHub e-posta private olabilir; /user/emails uç noktasına sorgu at
+            String token = request.getAccessToken().getTokenValue();
+            VerifiedEmail verifiedEmail = fetchGitHubPrimaryVerifiedEmail(token);
+
+            return new FederatedProfile("GITHUB", id, verifiedEmail.email(), verifiedEmail.verified(), firstName, lastName);
+        }
+        throw new OAuth2AuthenticationException("Desteklenmeyen sağlayıcı: " + provider);
+    }
+
+    private VerifiedEmail fetchGitHubPrimaryVerifiedEmail(String accessToken) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            HttpEntity&lt;Void&gt; entity = new HttpEntity&lt;&gt;(headers);
+
+            ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; response = restTemplate.exchange(
+                    "https://api.github.com/user/emails",
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference&lt;&gt;() {}
+            );
+
+            if (response.getBody() != null) {
+                for (Map&lt;String, Object&gt; emailEntry : response.getBody()) {
+                    boolean primary = Boolean.TRUE.equals(emailEntry.get("primary"));
+                    boolean verified = Boolean.TRUE.equals(emailEntry.get("verified"));
+                    if (primary &amp;&amp; verified) {
+                        return new VerifiedEmail((String) emailEntry.get("email"), true);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return new VerifiedEmail("no-verified-email@github.internal", false);
+    }
+
+    public record FederatedProfile(String provider, String providerUserId, String email, boolean isEmailVerified, String firstName, String lastName) {}
+    public record VerifiedEmail(String email, boolean verified) {}
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 3: SUCCESS HANDLER -->
+        <div id="tab-success-handler" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/identity/security/FederatedIdentityAuthenticationSuccessHandler.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeSuccessHandler', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeSuccessHandler">package com.enterprise.identity.security;
+
+import com.enterprise.identity.domain.UserAuditLog;
+import com.enterprise.identity.repository.UserAuditLogRepository;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.UUID;
+
+@Component
+public class FederatedIdentityAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+
+    private final UserAuditLogRepository auditLogRepository;
+
+    public FederatedIdentityAuthenticationSuccessHandler(UserAuditLogRepository auditLogRepository) {
+        this.auditLogRepository = auditLogRepository;
+        setDefaultTargetUrl("/oauth2/consent");
+    }
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException, ServletException {
+        if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
+            String userIdStr = (String) oauth2User.getAttributes().get("user_id");
+            String authProvider = (String) oauth2User.getAttributes().get("auth_provider");
+
+            UUID userId = userIdStr != null ? UUID.fromString(userIdStr) : null;
+            String ipAddress = extractClientIp(request);
+            String userAgent = request.getHeader("User-Agent");
+
+            // Başarılı giriş hareketini audit log tablosuna kaydet
+            UserAuditLog auditLog = new UserAuditLog(
+                    UUID.randomUUID(),
+                    userId,
+                    "SOCIAL_" + (authProvider != null ? authProvider : "OAUTH2"),
+                    "LOGIN_SUCCESS",
+                    ipAddress,
+                    userAgent,
+                    "Başarılı federated login oturumu"
+            );
+            auditLogRepository.save(auditLog);
+        }
+
+        super.onAuthenticationSuccess(request, response, authentication);
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null &amp;&amp; !xForwardedFor.isBlank()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 4: SECURITY CONFIG -->
+        <div id="tab-sec-cfg" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/identity/config/SecurityConfig.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeSecConfig', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeSecConfig">package com.enterprise.identity.config;
+
+import com.enterprise.identity.security.FederatedIdentityAuthenticationSuccessHandler;
+import com.enterprise.identity.service.CustomOAuth2UserService;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final FederatedIdentityAuthenticationSuccessHandler successHandler;
+
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
+                          FederatedIdentityAuthenticationSuccessHandler successHandler) {
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.successHandler = successHandler;
+    }
+
+    /**
+     * Zincir 1 (Highest Precedence):
+     * Spring Authorization Server Protokol Uç Noktaları (/oauth2/authorize, /oauth2/token, /oauth2/jwks)
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+                .oidc(Customizer.withDefaults()); // OIDC 1.0 Etkin
+
+        http
+                .exceptionHandling(exceptions -> exceptions
+                        .defaultAuthenticationEntryPointFor(
+                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                        )
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+
+        return http.build();
+    }
+
+    /**
+     * Zincir 2:
+     * Web, Yerel Giriş (FormLogin) ve Sosyal Giriş (OAuth2Login - Google &amp; GitHub) Filtre Zinciri
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/assets/**", "/login", "/api/v1/auth/register", "/error").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(successHandler)
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // Kurumsal Standart: Argon2id (saltLength: 16, hashLength: 32, parallelism: 1, memory: 65536, iterations: 3)
+        return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+    }
+
+    @Bean
+    public AuthorizationServerSettings authorizationServerSettings() {
+        return AuthorizationServerSettings.builder()
+                .issuer("http://localhost:9000")
+                .build();
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder(JWKSource&lt;SecurityContext&gt; jwkSource) {
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 5: TOKEN CUSTOMIZER -->
+        <div id="tab-customizer" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/identity/token/CustomTokenCustomizer.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeCustomizer', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeCustomizer">package com.enterprise.identity.token;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Configuration
+public class CustomTokenCustomizer {
+
+    @Bean
+    public OAuth2TokenCustomizer&lt;JwtEncodingContext&gt; tokenCustomizer() {
+        return context -> {
+            Authentication principal = context.getPrincipal();
+
+            // Kullanıcının sistemdeki tüm rolleri
+            Set&lt;String&gt; roles = principal.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toSet());
+
+            // Kullanıcının kimlik tipi (LOCAL, GOOGLE, GITHUB)
+            String authProvider = "LOCAL";
+            String userId = principal.getName();
+
+            if (principal.getPrincipal() instanceof OAuth2User oauth2User) {
+                if (oauth2User.getAttributes().containsKey("auth_provider")) {
+                    authProvider = (String) oauth2User.getAttributes().get("auth_provider");
+                }
+                if (oauth2User.getAttributes().containsKey("user_id")) {
+                    userId = (String) oauth2User.getAttributes().get("user_id");
+                }
+            }
+
+            final String finalAuthProvider = authProvider;
+            final String finalUserId = userId;
+
+            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+                context.getClaims().claims(claims -> {
+                    claims.put("user_id", finalUserId);
+                    claims.put("roles", roles);
+                    claims.put("auth_provider", finalAuthProvider);
+                    claims.put("tenant_id", "enterprise-corp");
+                    claims.put("iss_type", "internal-identity-broker");
+                });
+            }
+
+            if (OAuth2TokenType.ID_TOKEN.equals(context.getTokenType())) {
+                context.getClaims().claims(claims -> {
+                    claims.put("user_id", finalUserId);
+                    claims.put("roles", roles);
+                    claims.put("auth_provider", finalAuthProvider);
+                });
+            }
+        };
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 6: EXCEPTION HANDLER -->
+        <div id="tab-exception" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>com/enterprise/identity/exception/GlobalExceptionHandler.java (RFC 7807)</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeException', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeException">package com.enterprise.identity.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail handleIllegalState(IllegalStateException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Geçersiz İş Mantığı Durumu");
+        problem.setType(URI.create("https://identity.enterprise.com/errors/illegal-state"));
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidationErrors(MethodArgumentNotValidException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Girdi doğrulama hatası");
+        problem.setTitle("Validasyon Hatası");
+        problem.setType(URI.create("https://identity.enterprise.com/errors/validation-error"));
+
+        Map&lt;String, String&gt; errors = new HashMap&lt;&gt;();
+        ex.getBindingResult().getFieldErrors().forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+        problem.setProperty("field_errors", errors);
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Bu işlem için yetkiniz bulunmamaktadır.");
+        problem.setTitle("Yetkisiz Erişim");
+        problem.setType(URI.create("https://identity.enterprise.com/errors/access-denied"));
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 7: REST API SÖZLEŞMESİ -->
+    <section id="s7-api-contract">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">7</span>
+          REST API &amp; Profil Yönetim Sözleşmesi
+        </h2>
+        <p class="section-desc">
+          Kullanıcı kaydı, parola belirleme ve sosyal hesap bağlama/bağlantı koparma uç noktaları için JSON sözleşmeleri ve cURL örnekleri.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metot &amp; Uç Nokta</th>
+              <th>Açıklama</th>
+              <th>Güvenlik Kuralı</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>POST /api/v1/auth/register</code></td>
+              <td>Yerel kullanıcı kaydı oluşturma</td>
+              <td>Public &bull; Argon2id hashing &bull; Default ROLE_USER</td>
+            </tr>
+            <tr>
+              <td><code>POST /api/v1/users/me/set-password</code></td>
+              <td>Sosyal girişle gelen kullanıcının yerel şifre oluşturması</td>
+              <td>Bearer JWT &bull; password_hash NULL ise veya eski şifre doğrulanırsa</td>
+            </tr>
+            <tr>
+              <td><code>GET /api/v1/users/me</code></td>
+              <td>Kendi profilini ve bağlı sosyal hesapları getirme</td>
+              <td>Bearer JWT &bull; PII maskeleme kuralları uygulanır</td>
+            </tr>
+            <tr>
+              <td><code>DELETE /api/v1/users/me/social/{provider}</code></td>
+              <td>Sosyal hesap bağlantısını koparma</td>
+              <td>Bearer JWT &bull; <strong>Tek oturum yöntemi ise izin verilmez!</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">1. Yerel Şifre Belirleme (cURL)</div>
+          <div class="code-box">
+            <pre><code>curl -X POST http://localhost:9000/api/v1/users/me/set-password \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "new_password": "SuperSecureP@ssw0rd!2026",
+    "confirm_password": "SuperSecureP@ssw0rd!2026"
+  }'</code></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">2. Profil ve Bağlı Hesaplar Çıktısı (JSON)</div>
+          <div class="code-box">
+            <pre><code>{
+  "id": "e58ed763-928c-4155-bee9-fdbaaadc15f3",
+  "email": "user@enterprise.com",
+  "has_local_password": true,
+  "social_accounts": [
+    { "provider": "GOOGLE", "email": "user@gmail.com" },
+    { "provider": "GITHUB", "email": "user@enterprise.com" }
+  ],
+  "roles": ["ROLE_USER"]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 8: DOMAIN EVENTS -->
+    <section id="s8-domain-events">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">8</span>
+          Olay Güdümlü Entegrasyon (Domain Events)
+        </h2>
+        <p class="section-desc">
+          Kullanıcı yaşam döngüsü hareketlerinde asenkron bildirim (Kafka/RabbitMQ/Email) servislerini tetikleyen Java record event'leri.
+        </p>
+      </div>
+
+      <div class="code-box standalone">
+        <div class="code-bar">
+          <div class="code-bar-title">
+            <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+            <span>com/enterprise/identity/event/DomainEvents.java</span>
+          </div>
+          <button class="copy-btn" onclick="copySnippet('codeEvents', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeEvents">package com.enterprise.identity.event;
+
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * Yeni kullanıcı kaydı tamamlandığında tetiklenir (Hoş geldin e-postası, KYC vb.)
+ */
+public record UserRegisteredEvent(
+        UUID userId,
+        String email,
+        String registrationType, // 'LOCAL', 'FEDERATED_GOOGLE', 'FEDERATED_GITHUB'
+        Instant occurredAt
+) {
+    public UserRegisteredEvent(UUID userId, String email, String registrationType) {
+        this(userId, email, registrationType, Instant.now());
+    }
+}
+
+/**
+ * Mevcut bir hesaba yeni bir sosyal sağlayıcı bağlandığında tetiklenir (Güvenlik Uyarısı Maili)
+ */
+public record SocialAccountLinkedEvent(
+        UUID userId,
+        String provider,
+        String providerEmail,
+        Instant occurredAt
+) {
+    public SocialAccountLinkedEvent(UUID userId, String provider, String providerEmail) {
+        this(userId, provider, providerEmail, Instant.now());
+    }
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 9: GÜVENLİK TEHDİT MODELİ -->
+    <section id="s9-threat-model">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">9</span>
+          Güvenlik Tehdit Modeli ve Çözüm Tablosu
+        </h2>
+        <p class="section-desc">
+          Federated kimlik ve SSO mimarilerinde en sık karşılaşılan saldırı vektörleri ve kurumsal mitigasyon stratejileri:
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tehdit (Threat)</th>
+              <th>Risk Açıklaması</th>
+              <th>Kurumsal Çözüm / Mitigasyon</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Pre-Account Takeover</strong></td>
+              <td>Saldırgan kurbanın e-postasıyla şifresiz sahte bir Google/GitHub hesabı açıp yetki kazanmaya çalışır.</td>
+              <td>Sağlayıcıdan gelen <code>email_verified == true</code> kontrolü olmadan asla otomatik linkleme yapılmaz. Doğrulanmamışsa oturum reddedilir.</td>
+            </tr>
+            <tr>
+              <td><strong>Passwordless Lockout</strong></td>
+              <td>Sosyal hesabını silen veya erişimini kaybeden kullanıcı yerel şifresi yoksa sonsuza dek kilitlenir.</td>
+              <td>Kullanıcıya profilinden "Set Local Password" opsiyonu sunulur; tek oturum yöntemi kalan sosyal bağlantı silinemez.</td>
+            </tr>
+            <tr>
+              <td><strong>Insecure Direct Token Exposure</strong></td>
+              <td>Access token'ın tarayıcı LocalStorage'da tutulup XSS ile çalınması.</td>
+              <td>BFF (Backend-For-Frontend) deseni kullanılır veya token'lar <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Strict</code> cookie ile saklanır.</td>
+            </tr>
+            <tr>
+              <td><strong>OAuth Callback CSRF</strong></td>
+              <td>Yetkilendirme akışında dönen authorization code'un sahte bir oturuma enjekte edilmesi.</td>
+              <td>Spring Security OAuth2 Client'ın yerleşik rastgele <code>state</code> parametresi ve <code>PKCE</code> zorunluluğu ile korunur.</td>
+            </tr>
+            <tr>
+              <td><strong>Credential Stuffing &amp; Brute-Force</strong></td>
+              <td>Otomatik botlarla yerel kullanıcı şifrelerinin taranması.</td>
+              <td>Argon2id hashing, 5 ardışık başarısız denemede hesap kilitleme (<code>locked_until</code>) ve IP tabanlı rate-limiting.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg">Panoya kopyalandı!</span>
+  </div>
+
+  <script>
+    // Copy to Clipboard Utility
+    function copySnippet(elementId, btn) {
+      const el = document.getElementById(elementId);
+      const textToCopy = el.innerText || el.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast('Panoya başarıyla kopyalandı!');
+        if (btn) {
+          const originalText = btn.innerText;
+          btn.classList.add('copied');
+          btn.innerText = 'Kopyalandı!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerText = originalText;
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // Tab Switcher
+    function switchTab(evt, tabId) {
+      const container = evt.currentTarget.closest('.tabs-wrap');
+      const tabs = container.querySelectorAll('.tab-trigger');
+      const contents = container.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      contents.forEach(content => content.classList.remove('active'));
+
+      evt.currentTarget.classList.add('active');
+      const targetContent = container.querySelector('#' + tabId);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    }
+
+    // ScrollSpy for Sidebar
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('section');
+
+    window.addEventListener('scroll', () => {
+      let currentSectionId = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.scrollY >= sectionTop) {
+          currentSectionId = section.getAttribute('id');
+        }
+      });
+
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + currentSectionId) {
+          item.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

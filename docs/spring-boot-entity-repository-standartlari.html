@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Boot 4.1.1 Kurumsal JPA Entity &amp; Repository Standartları</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-alt: #161f30;
+      --panel-card: #1e293b;
+      --border: #1f2937;
+      --border-light: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
+      --code-bg: #030712;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1120;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.75rem 0.5rem 0.25rem;
+    }
+
+    nav.nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+
+    nav.nav-menu a:hover {
+      color: #fff;
+      background: var(--panel-alt);
+    }
+
+    nav.nav-menu a.active {
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      font-weight: 600;
+      border-left: 3px solid var(--cyan);
+    }
+
+    .nav-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--panel);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    nav.nav-menu a.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 2.5rem 3.5rem;
+      max-width: 1200px;
+      overflow-y: auto;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(168, 85, 247, 0.04) 50%, rgba(9, 13, 22, 0) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 12px;
+      padding: 2rem 2.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero-tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 600;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .hero-tag.cyan { color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .hero-tag.green { color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+    .hero-tag.purple { color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    .hero-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 860px;
+      line-height: 1.6;
+    }
+
+    /* Section Structure */
+    section {
+      margin-bottom: 3.5rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-head {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.3rem;
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-top: 0.4rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: var(--border-light); }
+    .card.accent-cyan { border-top: 3px solid var(--cyan); }
+    .card.accent-green { border-top: 3px solid var(--green); }
+    .card.accent-amber { border-top: 3px solid var(--amber); }
+    .card.accent-rose { border-top: 3px solid var(--rose); }
+    .card.accent-purple { border-top: 3px solid var(--purple); }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-text {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .card-text ul {
+      margin-left: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .card-text li {
+      margin-bottom: 0.35rem;
+    }
+
+    /* Diagram Box */
+    .diagram-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #38bdf8;
+    }
+
+    /* Code Blocks */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1.2rem;
+      background: #0d131f;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-file {
+      font-size: 0.82rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .code-lang-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn-copy:hover {
+      background: var(--panel-alt);
+      color: #fff;
+      border-color: var(--border-light);
+    }
+
+    .btn-copy.copied {
+      background: var(--green-glow);
+      color: var(--green);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    pre {
+      padding: 1.2rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+    }
+
+    /* Syntax Highlighting */
+    .c-keyword { color: #f43f5e; font-weight: 600; }
+    .c-type { color: #38bdf8; }
+    .c-annotation { color: #eab308; }
+    .c-string { color: #a3e635; }
+    .c-comment { color: #64748b; font-style: italic; }
+    .c-method { color: #c084fc; }
+    .c-var { color: #e2e8f0; }
+
+    /* Comparison Grids */
+    .comp-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .comp-col {
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+
+    .comp-col.wrong {
+      border-top: 3px solid var(--rose);
+      background: linear-gradient(180deg, rgba(244, 63, 94, 0.03) 0%, rgba(17, 24, 39, 1) 100%);
+    }
+
+    .comp-col.right {
+      border-top: 3px solid var(--green);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.03) 0%, rgba(17, 24, 39, 1) 100%);
+    }
+
+    .comp-header {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .comp-col.wrong .comp-header { color: var(--rose); }
+    .comp-col.right .comp-header { color: var(--green); }
+
+    .comp-note {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+
+    /* Tables */
+    .table-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      text-align: left;
+    }
+
+    th {
+      background: #0d131f;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0.85rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.85rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
+
+    .checklist-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      text-transform: uppercase;
+      display: inline-block;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.84em;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #38bdf8;
+    }
+
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; }
+      main { padding: 1.5rem; }
+      .grid-2, .grid-3, .comp-box { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ASIDE / SIDEBAR -->
+  <aside>
+    <div class="brand-box">
+      <div class="brand-badge">ARCH-SPEC 2026.2 (ENTERPRISE)</div>
+      <div class="brand-title">JPA &amp; Repository Standartları</div>
+      <div class="brand-subtitle">Spring Boot 4.1.1 &bull; Hibernate 6 &bull; Dual-ID &bull; Auditing</div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Kılavuz Menüsü</div>
+      <a href="#asama-1" class="active"><span class="nav-num">1</span> Kurumsal Mimari İlkeler</a>
+      <a href="#asama-2"><span class="nav-num">2</span> JPA Auditing &amp; Security Entegrasyonu</a>
+      <a href="#asama-3"><span class="nav-num">3</span> Kurumsal BaseEntity (Dual-ID &amp; Soft-Delete)</a>
+      <a href="#asama-4"><span class="nav-num">4</span> Domain Modelleri &amp; @SQLRestriction</a>
+      <a href="#asama-5"><span class="nav-num">5</span> Record Tabanlı Projeksiyonlar</a>
+      <a href="#asama-6"><span class="nav-num">6</span> Spring Data Repository &amp; N+1 Çözümü</a>
+      <a href="#asama-7"><span class="nav-num">7</span> Anti-Pattern Karşılaştırmaları</a>
+      <a href="#asama-8"><span class="nav-num">8</span> Mimari Kontrol Listesi</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+      <div class="hero-tags">
+        <span class="hero-tag cyan">Dual-ID Pattern (Long + UUID)</span>
+        <span class="hero-tag green">Full Audit Trail (Kim &amp; Ne Zaman)</span>
+        <span class="hero-tag purple">Soft Delete (@SQLRestriction)</span>
+        <span class="hero-tag cyan">Optimistic Locking (@Version)</span>
+        <span class="hero-tag green">Proxy-Safe Equals</span>
+      </div>
+      <h1 class="hero-title">Spring Boot 4.1.1 Kurumsal JPA Entity &amp; Repository Standartları</h1>
+      <p class="hero-desc">
+        Büyük ölçekli, güvenlik odaklı ve regülasyona tabi kurumsal mimariler için tasarlanmış veri kalıcılığı (persistence) standartları. IDOR saldırılarını önleyen Dual-ID deseni, Spring Security ile tam denetim izi (Audit Trail), Hibernate 6 mantıksal silme (Soft Delete), eşzamanlı çakışmaları engelleyen Optimistic Locking ve N+1 krizlerini bitiren <code>@EntityGraph</code> kuralları.
+      </p>
+    </div>
+
+    <!-- AŞAMA 1: MİMARİ İLKELER -->
+    <section id="asama-1">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 1</div>
+        <h2 class="section-title">Kurumsal Mimari İlkeler &amp; Güvenlik Standartları</h2>
+        <p class="section-desc">Kurumsal sistemlerin veri bütünlüğü, izlenebilirliği ve güvenliği için belirlenen 5 temel kural.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card accent-cyan">
+          <div class="card-title">1. Dual-ID Deseni (IDOR Koruması &amp; Performans)</div>
+          <div class="card-text">
+            Veritabanı içi ve dış dünya ID'leri birbirinden kesin olarak ayrılır:
+            <ul>
+              <li><strong>İç ID (<code>Long id</code>):</strong> PK, Clustered Index ve Foreign Key performansı içindir. Asla API'ye sızdırılmaz!</li>
+              <li><strong>Dış ID (<code>UUID publicId</code>):</strong> REST API URL'lerinde (/api/v1/orders/{publicId}) kullanılır. Ardışık olmadığı için IDOR açıklarını ve veri taramayı imkansız kılar.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card accent-green">
+          <div class="card-title">2. Tam Denetim İzi (Kim &amp; Ne Zaman?)</div>
+          <div class="card-text">
+            KVKK, GDPR, SOC2 ve finansal regülasyonlar için her işlem mühürlenir:
+            <ul>
+              <li><code>createdAt</code> ve <code>updatedAt</code> (Zaman damgası).</li>
+              <li><code>createdBy</code> ve <code>lastModifiedBy</code> (Kullanıcı mühürü).</li>
+              <li>Spring Security context'inden aktif JWT kullanıcısını <code>SecurityAuditorAware</code> otomatik çeker.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card accent-purple">
+          <div class="card-title">3. Mantıksal Silme (Soft Delete &amp; @SQLRestriction)</div>
+          <div class="card-text">
+            Veriler asla fiziksel olarak (<code>DELETE FROM ...</code>) silinmez:
+            <ul>
+              <li><code>deleted = true</code>, <code>deletedAt = NOW()</code> ve <code>deletedBy</code> ile arşivlenir.</li>
+              <li>Hibernate 6 <code>@SQLRestriction("deleted = false")</code> ile silinmiş kayıtlar tüm sorgulardan otomatik filtrelenir.</li>
+              <li>Yanlışlıkla veri silinmesi engellenir ve geri kurtarma (restore) desteklenir.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card accent-rose">
+          <div class="card-title">4. Concurrency Kontrolü (@Version Optimistic Locking)</div>
+          <div class="card-text">
+            Eşzamanlı isteklerde ezilen verileri (lost updates) önler:
+            <ul>
+              <li>Her güncellemede <code>version</code> sayısı 1 artırılır.</li>
+              <li>İki kullanıcı aynı anda kaydı değiştirmeye çalışırsa ikincisi <code>ObjectOptimisticLockingFailureException</code> alır.</li>
+              <li>Stok, bakiye ve profil güncellemelerinde veri tutarlılığı garanti altına alınır.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mimari Akış Diyagramı -->
+      <div class="diagram-box">
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ KURUMSAL BASE ENTITY DUAL-ID VE DENETİM DÖNGÜSÜ                                        │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+       [ Dış Dünya: REST API / İstemci ]
+                      │
+                      ▼ İstek: GET /api/v1/products/4a1c5d9e-128a-4d3b-a912-32b781cd4e10
+       ┌─────────────────────────────────────────────────────────┐
+       │ CONTROLLER KATMANI                                      │
+       │ - URL'de tahmin edilemez UUID publicId kullanılır.      │
+       │ - Sıralı Long ID gizlenir (IDOR Açığı %100 Önlenir).    │
+       └────────────────────────────┬────────────────────────────┘
+                                    │
+                                    ▼
+       ┌─────────────────────────────────────────────────────────┐
+       │ DATABASE / HIBERNATE PERSISTENCE KATMANI                │
+       │ - İç JOIN ve Foreign Key'ler: Long id (Maksimum Hız)    │
+       │ - @SQLRestriction("deleted = false") (Soft-Delete Filt) │
+       │ - @CreatedBy & @LastModifiedBy: "admin@enterprise.com"  │
+       │ - @Version: 2 (Optimistic Locking Çakışma Önleyici)     │
+       └─────────────────────────────────────────────────────────┘
+      </div>
+    </section>
+
+    <!-- AŞAMA 2: JPA AUDITING VE SECURITY ENTEGRASYONU -->
+    <section id="asama-2">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 2</div>
+        <h2 class="section-title">JPA Auditing &amp; Spring Security Entegrasyonu</h2>
+        <p class="section-desc">Aktif JWT oturumundan kullanıcıyı yakalayan SecurityAuditorAware ve JPA Auditing konfigürasyonu.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">SecurityAuditorAware.java <span class="code-lang-badge">Spring Component</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-auditor')">Kopyala</button>
+        </div>
+        <pre><code id="c-auditor"><span class="c-keyword">package</span> com.enterprise.coreapi.common.config;
+
+<span class="c-keyword">import</span> org.jspecify.annotations.NonNull;
+<span class="c-keyword">import</span> org.springframework.data.domain.AuditorAware;
+<span class="c-keyword">import</span> org.springframework.security.authentication.AnonymousAuthenticationToken;
+<span class="c-keyword">import</span> org.springframework.security.core.Authentication;
+<span class="c-keyword">import</span> org.springframework.security.core.context.SecurityContextHolder;
+<span class="c-keyword">import</span> org.springframework.stereotype.Component;
+
+<span class="c-keyword">import</span> java.util.Optional;
+
+<span class="c-comment">/**
+ * Spring Security Context üzerinden aktif kullanıcı bilgisini (JWT Subject)
+ * yakalayarak JPA @CreatedBy ve @LastModifiedBy alanlarına otomatik enjekte eder.
+ */</span>
+<span class="c-annotation">@Component</span>(<span class="c-string">"securityAuditorAware"</span>)
+<span class="c-keyword">public class</span> <span class="c-type">SecurityAuditorAware</span> <span class="c-keyword">implements</span> <span class="c-type">AuditorAware</span>&lt;<span class="c-type">String</span>&gt; {
+
+    <span class="c-keyword">public static final</span> <span class="c-type">String</span> <span class="c-var">SYSTEM_USER</span> = <span class="c-string">"SYSTEM"</span>;
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-annotation">@NonNull</span>
+    <span class="c-keyword">public</span> <span class="c-type">Optional</span>&lt;<span class="c-type">String</span>&gt; <span class="c-method">getCurrentAuditor</span>() {
+        <span class="c-type">Authentication</span> authentication = <span class="c-type">SecurityContextHolder</span>.<span class="c-method">getContext</span>().<span class="c-method">getAuthentication</span>();
+
+        <span class="c-keyword">if</span> (authentication == <span class="c-keyword">null</span> || !authentication.<span class="c-method">isAuthenticated</span>() || authentication <span class="c-keyword">instanceof</span> <span class="c-type">AnonymousAuthenticationToken</span>) {
+            <span class="c-keyword">return</span> <span class="c-type">Optional</span>.<span class="c-method">of</span>(<span class="c-var">SYSTEM_USER</span>);
+        }
+
+        <span class="c-type">String</span> username = authentication.<span class="c-method">getName</span>();
+        <span class="c-keyword">return</span> (username != <span class="c-keyword">null</span> &amp;&amp; !username.<span class="c-method">isBlank</span>()) ? <span class="c-type">Optional</span>.<span class="c-method">of</span>(username) : <span class="c-type">Optional</span>.<span class="c-method">of</span>(<span class="c-var">SYSTEM_USER</span>);
+    }
+}</code></pre>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">JpaConfig.java <span class="code-lang-badge">Java Configuration</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-jpaconfig')">Kopyala</button>
+        </div>
+        <pre><code id="c-jpaconfig"><span class="c-keyword">package</span> com.enterprise.coreapi.common.config;
+
+<span class="c-keyword">import</span> org.springframework.context.annotation.Configuration;
+<span class="c-keyword">import</span> org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+<span class="c-annotation">@Configuration</span>
+<span class="c-annotation">@EnableJpaAuditing</span>(auditorAwareRef = <span class="c-string">"securityAuditorAware"</span>)
+<span class="c-keyword">public class</span> <span class="c-type">JpaConfig</span> {
+    <span class="c-comment">// JPA Auditing ile @CreatedDate, @LastModifiedDate, @CreatedBy, @LastModifiedBy dinleyicisini aktive eder</span>
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 3: KURUMSAL BASE ENTITY -->
+    <section id="asama-3">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 3</div>
+        <h2 class="section-title">Kurumsal BaseEntity Mimarisi</h2>
+        <p class="section-desc">Dual-ID, Full Auditing, Soft-Delete, Optimistic Locking ve Proxy-Safe equals/hashCode bileşenleri.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">BaseEntity.java <span class="code-lang-badge">Enterprise MappedSuperclass</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-baseentity')">Kopyala</button>
+        </div>
+        <pre><code id="c-baseentity"><span class="c-keyword">package</span> com.enterprise.coreapi.common.entity;
+
+<span class="c-keyword">import</span> jakarta.persistence.*;
+<span class="c-keyword">import</span> lombok.Getter;
+<span class="c-keyword">import</span> lombok.Setter;
+<span class="c-keyword">import</span> org.hibernate.Hibernate;
+<span class="c-keyword">import</span> org.springframework.data.annotation.CreatedBy;
+<span class="c-keyword">import</span> org.springframework.data.annotation.CreatedDate;
+<span class="c-keyword">import</span> org.springframework.data.annotation.LastModifiedBy;
+<span class="c-keyword">import</span> org.springframework.data.annotation.LastModifiedDate;
+<span class="c-keyword">import</span> org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+<span class="c-keyword">import</span> java.time.Instant;
+<span class="c-keyword">import</span> java.util.Objects;
+<span class="c-keyword">import</span> java.util.UUID;
+
+<span class="c-annotation">@Getter</span>
+<span class="c-annotation">@Setter</span>
+<span class="c-annotation">@MappedSuperclass</span>
+<span class="c-annotation">@EntityListeners</span>(AuditingEntityListener.<span class="c-keyword">class</span>)
+<span class="c-keyword">public abstract class</span> <span class="c-type">BaseEntity</span> {
+
+    <span class="c-comment">/**
+     * 1. İç Veritabanı Birincil Anahtarı (Internal PK).
+     * Yalnızca DB indeksleme ve foreign key performansı içindir. Asla API'ye verilmez!
+     */</span>
+    <span class="c-annotation">@Id</span>
+    <span class="c-annotation">@GeneratedValue</span>(strategy = GenerationType.IDENTITY)
+    <span class="c-keyword">private</span> <span class="c-type">Long</span> id;
+
+    <span class="c-comment">/**
+     * 2. Dış Dünyaya Açık Genel Kimlik (Public Business Key / External ID).
+     * API endpoint'lerinde (/api/v1/resources/{publicId}) kullanılır. IDOR saldırılarını önler.
+     */</span>
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"public_id"</span>, nullable = <span class="c-keyword">false</span>, unique = <span class="c-keyword">true</span>, updatable = <span class="c-keyword">false</span>)
+    <span class="c-keyword">private</span> <span class="c-type">UUID</span> publicId = <span class="c-type">UUID</span>.<span class="c-method">randomUUID</span>();
+
+    <span class="c-comment">/**
+     * 3. Eşzamanlılık Kontrolü (Optimistic Locking).
+     */</span>
+    <span class="c-annotation">@Version</span>
+    <span class="c-annotation">@Column</span>(nullable = <span class="c-keyword">false</span>)
+    <span class="c-keyword">private</span> <span class="c-type">Long</span> version;
+
+    <span class="c-comment">// --- 4. AUDITING ALANLARI (Kim & Ne Zaman) ---</span>
+
+    <span class="c-annotation">@CreatedDate</span>
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"created_at"</span>, nullable = <span class="c-keyword">false</span>, updatable = <span class="c-keyword">false</span>)
+    <span class="c-keyword">private</span> <span class="c-type">Instant</span> createdAt;
+
+    <span class="c-annotation">@LastModifiedDate</span>
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"updated_at"</span>, nullable = <span class="c-keyword">false</span>)
+    <span class="c-keyword">private</span> <span class="c-type">Instant</span> updatedAt;
+
+    <span class="c-annotation">@CreatedBy</span>
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"created_by"</span>, nullable = <span class="c-keyword">false</span>, updatable = <span class="c-keyword">false</span>, length = 100)
+    <span class="c-keyword">private</span> <span class="c-type">String</span> createdBy;
+
+    <span class="c-annotation">@LastModifiedBy</span>
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"last_modified_by"</span>, nullable = <span class="c-keyword">false</span>, length = 100)
+    <span class="c-keyword">private</span> <span class="c-type">String</span> lastModifiedBy;
+
+    <span class="c-comment">// --- 5. SOFT DELETE ALANLARI (Mantıksal Silme) ---</span>
+
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"deleted"</span>, nullable = <span class="c-keyword">false</span>)
+    <span class="c-keyword">private boolean</span> deleted = <span class="c-keyword">false</span>;
+
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"deleted_at"</span>)
+    <span class="c-keyword">private</span> <span class="c-type">Instant</span> deletedAt;
+
+    <span class="c-annotation">@Column</span>(name = <span class="c-string">"deleted_by"</span>, length = 100)
+    <span class="c-keyword">private</span> <span class="c-type">String</span> deletedBy;
+
+    <span class="c-keyword">public void</span> <span class="c-method">markDeleted</span>(<span class="c-type">String</span> deletedBy) {
+        <span class="c-keyword">this</span>.deleted = <span class="c-keyword">true</span>;
+        <span class="c-keyword">this</span>.deletedAt = <span class="c-type">Instant</span>.<span class="c-method">now</span>();
+        <span class="c-keyword">this</span>.deletedBy = deletedBy;
+    }
+
+    <span class="c-keyword">public void</span> <span class="c-method">restore</span>() {
+        <span class="c-keyword">this</span>.deleted = <span class="c-keyword">false</span>;
+        <span class="c-keyword">this</span>.deletedAt = <span class="c-keyword">null</span>;
+        <span class="c-keyword">this</span>.deletedBy = <span class="c-keyword">null</span>;
+    }
+
+    <span class="c-comment">/**
+     * Hibernate Proxy Uyumlu equals Implementasyonu:
+     * ByteBuddy runtime proxy nesneleri için Hibernate.getClass(this) kullanılır.
+     * Değişmez iş anahtarı publicId üzerinden karşılaştırılır.
+     */</span>
+    <span class="c-annotation">@Override</span>
+    <span class="c-keyword">public boolean</span> <span class="c-method">equals</span>(<span class="c-type">Object</span> o) {
+        <span class="c-keyword">if</span> (<span class="c-keyword">this</span> == o) <span class="c-keyword">return true</span>;
+        <span class="c-keyword">if</span> (o == <span class="c-keyword">null</span> || <span class="c-type">Hibernate</span>.<span class="c-method">getClass</span>(<span class="c-keyword">this</span>) != <span class="c-type">Hibernate</span>.<span class="c-method">getClass</span>(o)) <span class="c-keyword">return false</span>;
+        <span class="c-type">BaseEntity</span> that = (<span class="c-type">BaseEntity</span>) o;
+        <span class="c-keyword">return</span> publicId != <span class="c-keyword">null</span> &amp;&amp; <span class="c-type">Objects</span>.<span class="c-method">equals</span>(publicId, that.publicId);
+    }
+
+    <span class="c-annotation">@Override</span>
+    <span class="c-keyword">public int</span> <span class="c-method">hashCode</span>() {
+        <span class="c-keyword">return</span> <span class="c-type">Hibernate</span>.<span class="c-method">getClass</span>(<span class="c-keyword">this</span>).<span class="c-method">hashCode</span>();
+    }
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 4: DOMAIN MODELLERİ VE SOFT DELETE RESTRICTION -->
+    <section id="asama-4">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 4</div>
+        <h2 class="section-title">Domain Modelleri &amp; Hibernate 6 @SQLRestriction</h2>
+        <p class="section-desc">Otomatik soft-delete filtreleme, indeksleme stratejileri ve katı LAZY ilişkiler.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">Product.java <span class="code-lang-badge">Enterprise Entity</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-prodentity')">Kopyala</button>
+        </div>
+        <pre><code id="c-prodentity"><span class="c-keyword">package</span> com.enterprise.coreapi.entity;
+
+<span class="c-keyword">import</span> com.enterprise.coreapi.common.entity.BaseEntity;
+<span class="c-keyword">import</span> jakarta.persistence.*;
+<span class="c-keyword">import</span> lombok.*;
+<span class="c-keyword">import</span> org.hibernate.annotations.SQLRestriction;
+<span class="c-keyword">import</span> java.math.BigDecimal;
+
+<span class="c-annotation">@Entity</span>
+<span class="c-annotation">@Table</span>(name = <span class="c-string">"products"</span>, indexes = {
+        <span class="c-annotation">@Index</span>(name = <span class="c-string">"idx_product_public_id"</span>, columnList = <span class="c-string">"public_id"</span>, unique = <span class="c-keyword">true</span>),
+        <span class="c-annotation">@Index</span>(name = <span class="c-string">"idx_product_sku"</span>, columnList = <span class="c-string">"sku"</span>, unique = <span class="c-keyword">true</span>),
+        <span class="c-annotation">@Index</span>(name = <span class="c-string">"idx_product_category"</span>, columnList = <span class="c-string">"category_id"</span>)
+})
+<span class="c-annotation">@SQLRestriction</span>(<span class="c-string">"deleted = false"</span>) <span class="c-comment">// Hibernate 6: Silinmiş kayıtları tüm sorgularda otomatik filtreler</span>
+<span class="c-annotation">@Getter</span>
+<span class="c-annotation">@Setter</span>
+<span class="c-annotation">@NoArgsConstructor</span>(access = AccessLevel.PROTECTED)
+<span class="c-keyword">public class</span> <span class="c-type">Product</span> <span class="c-keyword">extends</span> <span class="c-type">BaseEntity</span> {
+
+    <span class="c-annotation">@Column</span>(nullable = <span class="c-keyword">false</span>, length = 150)
+    <span class="c-keyword">private</span> <span class="c-type">String</span> name;
+
+    <span class="c-annotation">@Column</span>(nullable = <span class="c-keyword">false</span>, unique = <span class="c-keyword">true</span>, length = 50)
+    <span class="c-keyword">private</span> <span class="c-type">String</span> sku;
+
+    <span class="c-annotation">@Column</span>(nullable = <span class="c-keyword">false</span>, precision = 12, scale = 2)
+    <span class="c-keyword">private</span> <span class="c-type">BigDecimal</span> price;
+
+    <span class="c-annotation">@Column</span>(nullable = <span class="c-keyword">false</span>)
+    <span class="c-keyword">private boolean</span> active = <span class="c-keyword">true</span>;
+
+    <span class="c-comment">/**
+     * KRİTİK STANDART: FetchType.LAZY zorunludur!
+     */</span>
+    <span class="c-annotation">@ManyToOne</span>(fetch = FetchType.LAZY, optional = <span class="c-keyword">false</span>)
+    <span class="c-annotation">@JoinColumn</span>(name = <span class="c-string">"category_id"</span>, nullable = <span class="c-keyword">false</span>, foreignKey = <span class="c-annotation">@ForeignKey</span>(name = <span class="c-string">"fk_product_category"</span>))
+    <span class="c-keyword">private</span> <span class="c-type">Category</span> category;
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 5: RECORD TABANLI PROJEKSİYONLAR -->
+    <section id="asama-5">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 5</div>
+        <h2 class="section-title">Java 21 Record Constructor Projeksiyonları</h2>
+        <p class="section-desc">Public ID desteği ile sıfır Hibernate dirty-checking yükü getiren salt okunur modeller.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">ProductSummaryProjection.java <span class="code-lang-badge">Java 21 Record</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-projection')">Kopyala</button>
+        </div>
+        <pre><code id="c-projection"><span class="c-keyword">package</span> com.enterprise.coreapi.dto.projection;
+
+<span class="c-keyword">import</span> java.math.BigDecimal;
+<span class="c-keyword">import</span> java.util.UUID;
+
+<span class="c-comment">/**
+ * Spring Data Record Constructor Projection:
+ * İstemciye dönülecek publicId ve gerekli alanları doğrudan SQL ile çeker.
+ * Entity belleğe yüklenmez, snapshot alınmaz, maksimum verim sağlar.
+ */</span>
+<span class="c-keyword">public record</span> <span class="c-type">ProductSummaryProjection</span>(
+        <span class="c-type">UUID</span> publicId,
+        <span class="c-type">String</span> name,
+        <span class="c-type">String</span> sku,
+        <span class="c-type">BigDecimal</span> price,
+        <span class="c-type">String</span> categoryName
+) {
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 6: REPOSITORY MİMARİSİ VE PUBLIC ID SORGULARI -->
+    <section id="asama-6">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 6</div>
+        <h2 class="section-title">Spring Data Repository &amp; Public ID Sorgu Mimarisi</h2>
+        <p class="section-desc">Dış dünyadan gelen UUID publicId aramaları ve @EntityGraph ile N+1 çözümleri.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-head">
+          <div class="code-file">ProductRepository.java <span class="code-lang-badge">Spring Data JpaRepository</span></div>
+          <button class="btn-copy" onclick="copyCode(this, 'c-repo')">Kopyala</button>
+        </div>
+        <pre><code id="c-repo"><span class="c-keyword">package</span> com.enterprise.coreapi.repository;
+
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.projection.ProductSummaryProjection;
+<span class="c-keyword">import</span> com.enterprise.coreapi.entity.Product;
+<span class="c-keyword">import</span> org.springframework.data.domain.Page;
+<span class="c-keyword">import</span> org.springframework.data.domain.Pageable;
+<span class="c-keyword">import</span> org.springframework.data.jpa.repository.EntityGraph;
+<span class="c-keyword">import</span> org.springframework.data.jpa.repository.JpaRepository;
+<span class="c-keyword">import</span> org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+<span class="c-keyword">import</span> org.springframework.data.jpa.repository.Query;
+<span class="c-keyword">import</span> org.springframework.data.repository.query.Param;
+<span class="c-keyword">import</span> org.springframework.stereotype.Repository;
+
+<span class="c-keyword">import</span> java.util.Optional;
+<span class="c-keyword">import</span> java.util.UUID;
+
+<span class="c-annotation">@Repository</span>
+<span class="c-keyword">public interface</span> <span class="c-type">ProductRepository</span> <span class="c-keyword">extends</span> <span class="c-type">JpaRepository</span>&lt;<span class="c-type">Product</span>, <span class="c-type">Long</span>&gt;, <span class="c-type">JpaSpecificationExecutor</span>&lt;<span class="c-type">Product</span>&gt; {
+
+    <span class="c-comment">/**
+     * API İstemcilerinden gelen UUID publicId ile tekil getirme (IDOR güvenli).
+     * @EntityGraph sayesinde ilişkili Category tek SQL JOIN ile anında çekilir.
+     */</span>
+    <span class="c-annotation">@EntityGraph</span>(attributePaths = {<span class="c-string">"category"</span>})
+    <span class="c-type">Optional</span>&lt;<span class="c-type">Product</span>&gt; <span class="c-method">findByPublicId</span>(<span class="c-type">UUID</span> publicId);
+
+    <span class="c-keyword">boolean</span> <span class="c-method">existsBySku</span>(<span class="c-type">String</span> sku);
+
+    <span class="c-comment">/**
+     * ULTRA PERFORMANSLI RECORD PROJECTION (Sayfalı):
+     */</span>
+    <span class="c-annotation">@Query</span>(<span class="c-string">"""
+        SELECT new com.enterprise.coreapi.dto.projection.ProductSummaryProjection(
+            p.publicId,
+            p.name,
+            p.sku,
+            p.price,
+            c.name
+        )
+        FROM Product p
+        JOIN p.category c
+        WHERE p.active = true
+        """</span>)
+    <span class="c-type">Page</span>&lt;<span class="c-type">ProductSummaryProjection</span>&gt; <span class="c-method">findAllSummaryProjections</span>(<span class="c-type">Pageable</span> pageable);
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- AŞAMA 7: ANTI-PATTERN KARŞILAŞTIRMALARI -->
+    <section id="asama-7">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 7</div>
+        <h2 class="section-title">Kurumsal Anti-Pattern Karşılaştırmaları</h2>
+        <p class="section-desc">Güvenlik ve mimari seviyede yapılan 3 kritik hata ve kurumsal çözümler.</p>
+      </div>
+
+      <!-- Anti-Pattern 1 -->
+      <div class="comp-box">
+        <div class="comp-col wrong">
+          <div class="comp-header">❌ YANLIŞ: Ardışık Long ID'nin API'ye Açılması (IDOR)</div>
+          <pre><code>// GET /api/v1/orders/1001
+// Saldırgan ardışık ID'leri tarayarak (1002, 1003...)
+// tüm müşterilerin siparişlerini ve ciroyu öğrenebilir!</code></pre>
+          <div class="comp-note">IDOR saldırıları ve işletme metriklerinin sızdırılması en yaygın API güvenlik zaafiyetlerindendir.</div>
+        </div>
+
+        <div class="comp-col right">
+          <div class="comp-header">✅ DOĞRU: Dual-ID Deseni (UUID publicId)</div>
+          <pre><code>// GET /api/v1/orders/018e3a2b-9f21-789a-bc01-def456789abc
+// İçeride Long PK performansı korunur;
+// Dışarıda tahmin edilemez UUID ile veri taranamayacak hale gelir.</code></pre>
+          <div class="comp-note">İçeride hızlı indeks ve JOIN avantajı, dışarıda üst düzey API güvenliği sağlanır.</div>
+        </div>
+      </div>
+
+      <!-- Anti-Pattern 2 -->
+      <div class="comp-box">
+        <div class="comp-col wrong">
+          <div class="comp-header">❌ YANLIŞ: Fiziksel Silme (DELETE FROM ...)</div>
+          <pre><code>@DeleteMapping("/{id}")
+public void delete(@PathVariable Long id) {
+    productRepository.deleteById(id); // FİZİKSEL SİLME!
+    // Geçmiş siparişlerde referans bozulur, denetim izi kaybolur!
+}</code></pre>
+          <div class="comp-note">Kurumsal ERP, Fintech ve E-ticaret sistemlerinde fiziksel silme yasal ve teknik olarak kabul edilemez.</div>
+        </div>
+
+        <div class="comp-col right">
+          <div class="comp-header">✅ DOĞRU: Soft Delete &amp; @SQLRestriction</div>
+          <pre><code>@DeleteMapping("/{publicId}")
+public void delete(@PathVariable UUID publicId) {
+    product.markDeleted(currentUser);
+    // Kayıt korunur, @SQLRestriction ile otomatik filtrelenir.
+}</code></pre>
+          <div class="comp-note">İlişkisel bütünlük korunur, muhasebe/sipariş geçmişi kaybolmaz ve geri kurtarma desteklenir.</div>
+        </div>
+      </div>
+
+      <!-- Anti-Pattern 3 -->
+      <div class="comp-box">
+        <div class="comp-col wrong">
+          <div class="comp-header">❌ YANLIŞ: Denetim İzi (Audit Trail) Tutulmaması</div>
+          <pre><code>// Tabloda sadece veri var: "price = 50.00"
+// "Fiyatı kim 50 TL'ye düşürdü? Ne zaman değişti?"
+// sorusunun cevabı veritabanında YOK!</code></pre>
+          <div class="comp-note">SOC2, KVKK, GDPR ve ISO denetimlerinde sistem doğrudan uygunsuzluk alır.</div>
+        </div>
+
+        <div class="comp-col right">
+          <div class="comp-header">✅ DOĞRU: Spring Security AuditorAware Mühürü</div>
+          <pre><code>// createdAt: 2026-10-01 10:15
+// createdBy: "user@enterprise.com"
+// updatedAt: 2026-10-01 12:30
+// lastModifiedBy: "manager@enterprise.com"</code></pre>
+          <div class="comp-note">Her kayıt oluşturan ve son güncelleyen kullanıcıyla mühürlenir.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AŞAMA 8: MİMARİ KONTROL LİSTESİ -->
+    <section id="asama-8">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 8</div>
+        <h2 class="section-title">Kurumsal Mimari Kontrol Listesi (Checklist)</h2>
+        <p class="section-desc">Entity ve Repository katmanlarını commit etmeden önce doğrulanması zorunlu 12 kural.</p>
+      </div>
+
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>Kriter Kodu</th>
+              <th>Kontrol Maddesi</th>
+              <th>Standart &amp; Kural Açıklaması</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>CHK-JPA-01</code></td>
+              <td><strong>Kurumsal BaseEntity Kalıtımı</strong></td>
+              <td>Tüm entity sınıfları <code>BaseEntity</code>'den türetilmeli (<code>id</code>, <code>publicId</code>, <code>version</code>, audit ve soft delete alanları).</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-02</code></td>
+              <td><strong>Dual-ID Deseni (IDOR Koruması)</strong></td>
+              <td>Dış API uçlarında <code>Long id</code> yerine <code>UUID publicId</code> kullanılmalı; iç ID istemciye sızdırılmamalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-03</code></td>
+              <td><strong>Spring Security AuditorAware</strong></td>
+              <td><code>createdBy</code> ve <code>lastModifiedBy</code> alanları <code>SecurityAuditorAware</code> ile otomatik doldurulmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-04</code></td>
+              <td><strong>Soft Delete &amp; @SQLRestriction</strong></td>
+              <td>Fiziksel DELETE yasaklanmalı; <code>@SQLRestriction("deleted = false")</code> ile mantıksal silme uygulanmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-05</code></td>
+              <td><strong>Optimistic Locking (@Version)</strong></td>
+              <td>Concurrency güvenliği ve lost update'leri önlemek için <code>@Version</code> tanımlanmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-06</code></td>
+              <td><strong>Katı LAZY Fetching Kuralı</strong></td>
+              <td><code>@ManyToOne</code> ve <code>@OneToOne</code> ilişkileri istisnasız <code>fetch = FetchType.LAZY</code> olmalıdır (<code>EAGER</code> yasaktır).</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-07</code></td>
+              <td><strong>Lombok @Data Yasağı</strong></td>
+              <td>Entity sınıflarında asla <code>@Data</code> ve serbest <code>@ToString</code> kullanılmamalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-08</code></td>
+              <td><strong>Proxy-Safe equals/hashCode</strong></td>
+              <td><code>Hibernate.getClass(this)</code> ve değişmez <code>publicId</code> kullanılarak proxy-safe eşitlik sağlanmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-09</code></td>
+              <td><strong>N+1 Önleme (@EntityGraph)</strong></td>
+              <td>İlişkili nesneler çekilirken <code>@EntityGraph</code> veya JPQL <code>JOIN FETCH</code> kullanılmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-10</code></td>
+              <td><strong>Record Tabanlı Projeksiyon</strong></td>
+              <td>Sadece okunacak listelemelerde doğrudan Java 21 <code>record</code> projeksiyonları döndürülmelidir.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-11</code></td>
+              <td><strong>@Transactional(readOnly = true)</strong></td>
+              <td>Veri okuma metotlarında dirty-checking snapshot'ı kapatılmalıdır.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+            <tr>
+              <td><code>CHK-JPA-12</code></td>
+              <td><strong>İndeksleme Standartları</strong></td>
+              <td><code>public_id</code>, <code>sku</code> ve foreign key alanları <code>@Table(indexes = ...)</code> ile indekslenmelidir.</td>
+              <td><span class="checklist-badge">Zorunlu</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function copyCode(button, codeId) {
+      const codeElement = document.getElementById(codeId);
+      if (!codeElement) return;
+
+      const text = codeElement.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = button.innerText;
+        button.innerText = 'Kopyalandı!';
+        button.classList.add('copied');
+
+        setTimeout(() => {
+          button.innerText = originalText;
+          button.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Kopyalama hatası: ', err);
+      });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          document.querySelectorAll('nav.nav-menu a').forEach(link => {
+            if (link.getAttribute('href') === `#${id}`) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    document.querySelectorAll('section').forEach(section => {
+      observer.observe(section);
+    });
+  </script>
+</body>
+</html>

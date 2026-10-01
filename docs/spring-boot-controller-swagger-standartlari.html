@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Boot 4.1.1 Controller &amp; OpenAPI/Swagger Standartları</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-alt: #161f30;
+      --panel-card: #1e293b;
+      --border: #1f2937;
+      --border-light: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --code-bg: #030712;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1120;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.75rem 0.5rem 0.25rem;
+    }
+
+    nav.nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+
+    nav.nav-menu a:hover {
+      color: #fff;
+      background: var(--panel-alt);
+    }
+
+    nav.nav-menu a.active {
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      font-weight: 600;
+      border-left: 3px solid var(--cyan);
+    }
+
+    .nav-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--panel);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    nav.nav-menu a.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 2.5rem 3.5rem;
+      max-width: 1200px;
+      overflow-y: auto;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(168, 85, 247, 0.04) 50%, rgba(9, 13, 22, 0) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 12px;
+      padding: 2rem 2.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero-tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 600;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .hero-tag.cyan { color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .hero-tag.green { color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+    .hero-tag.purple { color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    .hero-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 860px;
+      line-height: 1.6;
+    }
+
+    /* Section Structure */
+    section {
+      margin-bottom: 3.5rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-head {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.3rem;
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-top: 0.4rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+    }
+
+    .card.danger-card {
+      border-color: rgba(244, 63, 94, 0.3);
+      background: rgba(244, 63, 94, 0.04);
+    }
+
+    .card.success-card {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Code Box & Topbar */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .code-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .code-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .code-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: var(--panel-alt);
+      color: var(--cyan);
+      border: 1px solid var(--border);
+    }
+
+    .btn-copy {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.7rem;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn-copy:hover {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+    }
+
+    .btn-copy.copied {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+    }
+
+    pre.code-content {
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.86rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    /* Syntax Highlighting */
+    .c-keyword { color: #f43f5e; font-weight: 600; }
+    .c-type { color: #38bdf8; }
+    .c-string { color: #34d399; }
+    .c-comment { color: #64748b; font-style: italic; }
+    .c-annotation { color: #eab308; }
+    .c-num { color: #fb923c; }
+    .c-var { color: #e2e8f0; }
+    .c-method { color: #a78bfa; }
+
+    /* Callouts */
+    .callout {
+      border-radius: var(--radius);
+      padding: 1.15rem 1.4rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .callout-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      line-height: 1.2;
+    }
+
+    .callout-info {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      color: #e0f2fe;
+    }
+
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fef3c7;
+    }
+
+    .callout-danger {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      color: #ffe4e6;
+    }
+
+    .callout-success {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #d1fae5;
+    }
+
+    /* Tabs */
+    .tab-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-header {
+      display: flex;
+      gap: 0.3rem;
+      border-bottom: 1px solid var(--border);
+      background: #0b1120;
+      padding: 0.5rem 0.75rem 0;
+      border-top-left-radius: var(--radius);
+      border-top-right-radius: var(--radius);
+    }
+
+    .tab-btn {
+      padding: 0.55rem 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: var(--cyan);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-bottom-color: var(--code-bg);
+      margin-bottom: -1px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Diagram Box */
+    .diagram-box {
+      background: #0b1120;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+    }
+
+    .checklist-check {
+      color: var(--green);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; }
+      main { padding: 1.5rem; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR NAVİGASYON -->
+  <aside>
+    <div class="brand-box">
+      <div class="brand-badge">⚡ Architecture Standard</div>
+      <div class="brand-title">Controller &amp; Swagger Standartları</div>
+      <div class="brand-subtitle">Spring Boot 4.1.1 &bull; OAS 3.1</div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Katman Mimarisi</div>
+      <a href="#asama-1" class="active"><span class="nav-num">1</span> HTTP Sınır İzolasyonu (Boundary)</a>
+      <a href="#asama-2"><span class="nav-num">2</span> Doğru vs. Yanlış (Visual Diff)</a>
+      
+      <div class="nav-label">OpenAPI &amp; Meta-Annotations</div>
+      <a href="#asama-3"><span class="nav-num">3</span> OpenAPIConfig (JWT &amp; OAS 3.1)</a>
+      <a href="#asama-4"><span class="nav-num">4</span> Kurumsal Meta-Anotasyonlar</a>
+      
+      <div class="nav-label">Uygulama &amp; Doğrulama</div>
+      <a href="#asama-5"><span class="nav-num">5</span> Temiz REST Controller Örneği</a>
+      <a href="#asama-6"><span class="nav-num">6</span> Swagger UI Entegrasyonu</a>
+      <a href="#asama-7"><span class="nav-num">7</span> Mimari Kontrol Listesi</a>
+    </nav>
+  </aside>
+
+  <!-- ANA İÇERİK ALANI -->
+  <main>
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+      <div class="hero-tags">
+        <span class="hero-tag cyan">Spring Boot 4.1.1 GA</span>
+        <span class="hero-tag green">OpenAPI 3.1 &amp; Springdoc</span>
+        <span class="hero-tag purple">Protocol Boundary Isolation</span>
+        <span class="hero-tag">Meta-Annotation Pattern</span>
+        <span class="hero-tag">JWT Bearer Scheme</span>
+        <span class="hero-tag">Zero Annotation Hell</span>
+      </div>
+      <h1 class="hero-title">Controller Katmanı &amp; Swagger Standardizasyonu</h1>
+      <p class="hero-desc">
+        Kurumsal ölçekli mikroservislerde HTTP protokol nesnelerinin (ResponseEntity, HttpStatus, ApiResponse) <strong>yalnızca Controller sınırında</strong> tutulması; Service katmanının saf iş mantığıyla korunması ve Controller sınıflarının tekrar eden Swagger kodlarından <strong>Bileşik Meta-Anotasyonlar</strong> ile arındırılması rehberi.
+      </p>
+    </div>
+
+
+    <!-- AŞAMA 1: HTTP SINIR İZOLASYONU -->
+    <section id="asama-1">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 1</div>
+        <h2 class="section-title">HTTP Sınır İzolasyonu (Protocol Boundary Isolation)</h2>
+        <p class="section-desc">Clean Architecture ve Domain-Driven Design prensiplerine göre katmanların sorumluluk sınırları.</p>
+      </div>
+
+      <div class="diagram-box">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      HTTP İSTEMCİSİ (Web, Mobil, Gateway)                    │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ HTTP JSON Request
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. CONTROLLER KATMANI (HTTP Boundary Layer - Sınır Kapısı)                 │
+│  - @PathVariable, @RequestParam, @RequestBody, @Valid doğrulamaları        │
+│  - ResponseEntity&lt;ApiResponse&lt;T&gt;&gt; veya ResponseEntity&lt;PageResponse&lt;T&gt;&gt;      │
+│  - HTTP Durum Kodları (200 OK, 201 CREATED, 204 NO CONTENT)                 │
+│  - OpenAPI / Swagger Meta-Anotasyonları (@ApiGetResponse, @ApiCreateResponse)│
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Saf Java Parametreleri / DTO
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. SERVICE KATMANI (Pure Domain / Application Business Layer)              │
+│  - KESİNLİKLE org.springframework.http.* IMPORT EDEMEZ!                    │
+│  - KESİNLİKLE ResponseEntity, HttpStatus veya ApiResponse DÖNEMEZ!         │
+│  - Yalnızca saf DTO'lar, Entity'ler veya Page&lt;T&gt; döner                      │
+│  - Hata durumunda Domain Exception fırlatır (ResourceNotFoundException)   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. REPOSITORY KATMANI (Persistence Layer - Spring Data JPA)                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">🚫 Neden Service'te ResponseEntity Yasak?</div>
+          <div class="card-text">
+            Service metodunda <code>ResponseEntity</code> döndürülürse o metod HTTP protokolüne zincirlenir. Aynı servisi bir Kafka dinleyicisi, RabbitMQ kuyruğu, gRPC servisi veya arka plan zamanlanmış görevi (<code>@Scheduled</code>) çağıramaz hale gelir.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📦 Neden ApiResponse Controller'da?</div>
+          <div class="card-text">
+            <code>ApiResponse&lt;T&gt;</code> bir HTTP transfer zarfıdır. Servis katmanının görevi veriyi zarflamak değil; veriyi üretmek, doğrulamak ve iş kurallarını işletmektir. Zarflama kararı sunum (Controller) katmanına aittir.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🧹 Anotasyon Hijyeni</div>
+          <div class="card-text">
+            Her metoda tek tek 10 satır Swagger anotasyonu eklemek kodun okunmasını imkansızlaştırır ("Annotation Hell"). Kurumsal meta-anotasyonlar sayesinde 1 satır ile RFC 7807 dahil tüm yanıtlar standartlaşır.
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 2: DOĞRU VS. YANLIŞ KARŞILAŞTIRMASI -->
+    <section id="asama-2">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 2</div>
+        <h2 class="section-title">Doğru vs. Yanlış (Visual Code Comparison)</h2>
+        <p class="section-desc">Geliştiricilerin sıklıkla düştüğü anti-pattern ile kurumsal Clean Architecture standardının yan yana karşılaştırması.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- Anti-Pattern -->
+        <div class="card danger-card">
+          <div class="card-title" style="color: var(--rose);">
+            <span>❌ KÖTÜ KOD (Anti-Pattern: HTTP Sızıntısı)</span>
+          </div>
+          <div class="card-text">
+            <p style="margin-bottom: 0.5rem;">Service katmanı HTTP paketlerine bağımlı kılınmış, test edilebilirlik ve taşınabilirlik yok edilmiş:</p>
+          </div>
+          <div class="code-box" style="margin-top: 0.75rem; margin-bottom: 0;">
+            <pre class="code-content"><code><span class="c-comment">// ⚠️ YASAK: Service içine HTTP bulaşmış!</span>
+<span class="c-annotation">@Service</span>
+<span class="c-keyword">public class</span> <span class="c-type">UserService</span> {
+
+    <span class="c-comment">// HATA 1: ResponseEntity dönüyor</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">UserDto</span>&gt;&gt; <span class="c-method">getUser</span>(<span class="c-type">String</span> id) {
+        <span class="c-type">User</span> user = repository.<span class="c-method">findById</span>(id).<span class="c-method">orElse</span>(<span class="c-keyword">null</span>);
+        <span class="c-keyword">if</span> (user == <span class="c-keyword">null</span>) {
+            <span class="c-comment">// HATA 2: Service içinde HTTP 404 üretiliyor</span>
+            <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">status</span>(<span class="c-type">HttpStatus</span>.<span class="c-var">NOT_FOUND</span>).<span class="c-method">build</span>();
+        }
+        <span class="c-comment">// HATA 3: Service HTTP zarfını biliyor</span>
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(toDto(user), <span class="c-string">"traceId"</span>));
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- Clean Code -->
+        <div class="card success-card">
+          <div class="card-title" style="color: var(--green);">
+            <span>✅ TEMİZ KOD (Clean Architecture Standardı)</span>
+          </div>
+          <div class="card-text">
+            <p style="margin-bottom: 0.5rem;">Service tamamen saf Java DTO döner; Controller ise HTTP zarflamasını ve durum kodunu yönetir:</p>
+          </div>
+          <div class="code-box" style="margin-top: 0.75rem; margin-bottom: 0;">
+            <pre class="code-content"><code><span class="c-comment">// ✅ DOĞRU: Service sadece iş mantığını işletir</span>
+<span class="c-annotation">@Service</span>
+<span class="c-keyword">public class</span> <span class="c-type">UserService</span> {
+
+    <span class="c-keyword">public</span> <span class="c-type">UserDto</span> <span class="c-method">getUser</span>(<span class="c-type">String</span> id) {
+        <span class="c-keyword">return</span> repository.<span class="c-method">findById</span>(id)
+                .<span class="c-method">map</span>(<span class="c-keyword">this</span>::toDto)
+                .<span class="c-method">orElseThrow</span>(() -&gt; <span class="c-keyword">new</span> <span class="c-type">ResourceNotFoundException</span>(<span class="c-string">"User"</span>, <span class="c-string">"id"</span>, id));
+    }
+}
+
+<span class="c-comment">// Controller HTTP zarfını ve statüsünü atar</span>
+<span class="c-annotation">@GetMapping</span>(<span class="c-string">"/{id}"</span>)
+<span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">UserDto</span>&gt;&gt; <span class="c-method">getUser</span>(<span class="c-annotation">@PathVariable</span> <span class="c-type">String</span> id) {
+    <span class="c-type">UserDto</span> user = userService.<span class="c-method">getUser</span>(id);
+    <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-string">"traceId"</span>);
+    <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(user, traceId));
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 3: OPENAPI CONFIG (JWT & OAS 3.1) -->
+    <section id="asama-3">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 3</div>
+        <h2 class="section-title">OpenAPIConfig (JWT Bearer &amp; OAS 3.1)</h2>
+        <p class="section-desc">Swagger UI üzerinde 'Authorize' butonunu aktifleştiren, JWT Bearer Token şemasını ve kurumsal API meta bilgilerini tanımlayan merkezi konfigürasyon.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-topbar">
+          <div class="code-title">
+            <span class="code-badge">CONFIGURATION</span>
+            <span>com.enterprise.common.config.OpenAPIConfig.java</span>
+          </div>
+          <button class="btn-copy" onclick="copyCode(this)"><span>Kodu Kopyala</span></button>
+        </div>
+        <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.config;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.models.Components;
+<span class="c-keyword">import</span> io.swagger.v3.oas.models.OpenAPI;
+<span class="c-keyword">import</span> io.swagger.v3.oas.models.info.Contact;
+<span class="c-keyword">import</span> io.swagger.v3.oas.models.info.Info;
+<span class="c-keyword">import</span> io.swagger.v3.oas.models.info.License;
+<span class="c-keyword">import</span> io.swagger.v3.oas.models.security.SecurityRequirement;
+<span class="c-keyword">import</span> io.swagger.v3.oas.models.security.SecurityScheme;
+<span class="c-keyword">import</span> org.springframework.context.annotation.Bean;
+<span class="c-keyword">import</span> org.springframework.context.annotation.Configuration;
+
+<span class="c-annotation">@Configuration</span>
+<span class="c-keyword">public class</span> <span class="c-type">OpenAPIConfig</span> {
+
+    <span class="c-keyword">public static final</span> <span class="c-type">String</span> <span class="c-var">SECURITY_SCHEME_NAME</span> = <span class="c-string">"BearerAuth"</span>;
+
+    <span class="c-annotation">@Bean</span>
+    <span class="c-keyword">public</span> <span class="c-type">OpenAPI</span> <span class="c-method">customOpenAPI</span>() {
+        <span class="c-keyword">return new</span> <span class="c-type">OpenAPI</span>()
+                .<span class="c-method">info</span>(<span class="c-keyword">new</span> <span class="c-type">Info</span>()
+                        .<span class="c-method">title</span>(<span class="c-string">"Enterprise Core REST API Services"</span>)
+                        .<span class="c-method">version</span>(<span class="c-string">"v1.0.0"</span>)
+                        .<span class="c-method">description</span>(<span class="c-string">"Standardized Spring Boot 4.1.1 REST API Documentation with RFC 7807 ProblemDetail and Clean Boundary Isolation."</span>)
+                        .<span class="c-method">contact</span>(<span class="c-keyword">new</span> <span class="c-type">Contact</span>()
+                                .<span class="c-method">name</span>(<span class="c-string">"API Architecture Governance Team"</span>)
+                                .<span class="c-method">email</span>(<span class="c-string">"api-core@enterprise.com"</span>))
+                        .<span class="c-method">license</span>(<span class="c-keyword">new</span> <span class="c-type">License</span>()
+                                .<span class="c-method">name</span>(<span class="c-string">"MIT License"</span>)
+                                .<span class="c-method">url</span>(<span class="c-string">"https://opensource.org/licenses/MIT"</span>)))
+                .<span class="c-method">addSecurityItem</span>(<span class="c-keyword">new</span> <span class="c-type">SecurityRequirement</span>().<span class="c-method">addList</span>(<span class="c-var">SECURITY_SCHEME_NAME</span>))
+                .<span class="c-method">components</span>(<span class="c-keyword">new</span> <span class="c-type">Components</span>()
+                        .<span class="c-method">addSecuritySchemes</span>(<span class="c-var">SECURITY_SCHEME_NAME</span>,
+                                <span class="c-keyword">new</span> <span class="c-type">SecurityScheme</span>()
+                                        .<span class="c-method">name</span>(<span class="c-var">SECURITY_SCHEME_NAME</span>)
+                                        .<span class="c-method">type</span>(<span class="c-type">SecurityScheme</span>.<span class="c-type">Type</span>.<span class="c-var">HTTP</span>)
+                                        .<span class="c-method">scheme</span>(<span class="c-string">"bearer"</span>)
+                                        .<span class="c-method">bearerFormat</span>(<span class="c-string">"JWT"</span>)
+                                        .<span class="c-method">description</span>(<span class="c-string">"JWT Bearer token formatında yetkilendirme başlığı: 'Bearer {token}'"</span>)));
+    }
+}</code></pre>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">⚙️</div>
+        <div>
+          <strong>application.yml Swagger UI Ayarları:</strong><br>
+          Springdoc OpenAPI Swagger UI arayüzünü method ve alfabetik etiket sırasına göre düzenlemek için <code>application.yml</code> dosyanızda şu blok yer almalıdır:
+          <pre style="background: var(--code-bg); padding: 0.5rem 0.75rem; border-radius: 6px; margin-top: 0.5rem; font-size: 0.8rem;"><code>springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true</code></pre>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 4: KURUMSAL META-ANOTASYONLAR -->
+    <section id="asama-4">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 4</div>
+        <h2 class="section-title">Anotasyon Hijyeni &amp; Kurumsal Meta-Anotasyonlar</h2>
+        <p class="section-desc">Tekrar eden Swagger yanıt tanımlarını tek satıra indiren ve RFC 7807 ProblemDetail şemalarını otomatik bağlayan bileşik anotasyonlar.</p>
+      </div>
+
+      <div class="tab-container">
+        <div class="tab-header">
+          <button class="tab-btn active" onclick="switchCodeTab(this, 'tab-meta-common')">@ApiCommonResponses</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-meta-get')">@ApiGetResponse</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-meta-create')">@ApiCreateResponse</button>
+          <button class="tab-btn" onclick="switchCodeTab(this, 'tab-meta-delete')">@ApiDeleteResponse</button>
+        </div>
+
+        <!-- @ApiCommonResponses -->
+        <div id="tab-meta-common" class="tab-content active">
+          <div class="code-box">
+            <div class="code-topbar">
+              <div class="code-title">
+                <span class="code-badge">META-ANNOTATION</span>
+                <span>com.enterprise.common.openapi.ApiCommonResponses.java</span>
+              </div>
+              <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+            </div>
+            <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.openapi;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Content;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponse;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponses;
+<span class="c-keyword">import</span> org.springframework.http.ProblemDetail;
+
+<span class="c-keyword">import</span> java.lang.annotation.*;
+
+<span class="c-comment">/**
+ * Tüm endpoint'lerde ortak olan 400, 401, 403 ve 500 RFC 7807 hata şemalarını tek seferde ekler.
+ */</span>
+<span class="c-annotation">@Target</span>({ElementType.<span class="c-var">METHOD</span>, ElementType.<span class="c-var">TYPE</span>})
+<span class="c-annotation">@Retention</span>(RetentionPolicy.<span class="c-var">RUNTIME</span>)
+<span class="c-annotation">@Documented</span>
+<span class="c-annotation">@ApiResponses</span>({
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"400"</span>,
+                description = <span class="c-string">"Bad Request / Validasyon Hatası (RFC 7807)"</span>,
+                content = <span class="c-annotation">@Content</span>(mediaType = <span class="c-string">"application/problem+json"</span>, schema = <span class="c-annotation">@Schema</span>(implementation = <span class="c-type">ProblemDetail</span>.<span class="c-keyword">class</span>))
+        ),
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"401"</span>,
+                description = <span class="c-string">"Unauthorized / Kimlik Doğrulama Başarısız (RFC 7807)"</span>,
+                content = <span class="c-annotation">@Content</span>(mediaType = <span class="c-string">"application/problem+json"</span>, schema = <span class="c-annotation">@Schema</span>(implementation = <span class="c-type">ProblemDetail</span>.<span class="c-keyword">class</span>))
+        ),
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"403"</span>,
+                description = <span class="c-string">"Forbidden / Yetkisiz Erişim (RFC 7807)"</span>,
+                content = <span class="c-annotation">@Content</span>(mediaType = <span class="c-string">"application/problem+json"</span>, schema = <span class="c-annotation">@Schema</span>(implementation = <span class="c-type">ProblemDetail</span>.<span class="c-keyword">class</span>))
+        ),
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"500"</span>,
+                description = <span class="c-string">"Internal Server Error / Beklenmeyen Sunucu Hatası (RFC 7807)"</span>,
+                content = <span class="c-annotation">@Content</span>(mediaType = <span class="c-string">"application/problem+json"</span>, schema = <span class="c-annotation">@Schema</span>(implementation = <span class="c-type">ProblemDetail</span>.<span class="c-keyword">class</span>))
+        )
+})
+<span class="c-keyword">public @interface</span> <span class="c-type">ApiCommonResponses</span> {
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- @ApiGetResponse -->
+        <div id="tab-meta-get" class="tab-content">
+          <div class="code-box">
+            <div class="code-topbar">
+              <div class="code-title">
+                <span class="code-badge">META-ANNOTATION</span>
+                <span>com.enterprise.common.openapi.ApiGetResponse.java</span>
+              </div>
+              <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+            </div>
+            <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.openapi;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Content;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponse;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponses;
+<span class="c-keyword">import</span> org.springframework.core.annotation.AliasFor;
+<span class="c-keyword">import</span> org.springframework.http.ProblemDetail;
+
+<span class="c-keyword">import</span> java.lang.annotation.*;
+
+<span class="c-comment">/**
+ * 200 OK + 404 Not Found + Ortak RFC 7807 Hata Yanıtlarını tek satırda bağlar.
+ */</span>
+<span class="c-annotation">@Target</span>(ElementType.<span class="c-var">METHOD</span>)
+<span class="c-annotation">@Retention</span>(RetentionPolicy.<span class="c-var">RUNTIME</span>)
+<span class="c-annotation">@Documented</span>
+<span class="c-annotation">@ApiCommonResponses</span>
+<span class="c-annotation">@ApiResponses</span>({
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"200"</span>,
+                description = <span class="c-string">"Kayıt başarıyla getirildi"</span>
+        ),
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"404"</span>,
+                description = <span class="c-string">"İstenen kaynak bulunamadı (RFC 7807)"</span>,
+                content = <span class="c-annotation">@Content</span>(mediaType = <span class="c-string">"application/problem+json"</span>, schema = <span class="c-annotation">@Schema</span>(implementation = <span class="c-type">ProblemDetail</span>.<span class="c-keyword">class</span>))
+        )
+})
+<span class="c-keyword">public @interface</span> <span class="c-type">ApiGetResponse</span> {
+    <span class="c-annotation">@AliasFor</span>(annotation = <span class="c-type">ApiResponse</span>.<span class="c-keyword">class</span>, attribute = <span class="c-string">"description"</span>)
+    <span class="c-type">String</span> <span class="c-method">description</span>() <span class="c-keyword">default</span> <span class="c-string">"Kayıt başarıyla getirildi"</span>;
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- @ApiCreateResponse -->
+        <div id="tab-meta-create" class="tab-content">
+          <div class="code-box">
+            <div class="code-topbar">
+              <div class="code-title">
+                <span class="code-badge">META-ANNOTATION</span>
+                <span>com.enterprise.common.openapi.ApiCreateResponse.java</span>
+              </div>
+              <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+            </div>
+            <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.openapi;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Content;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponse;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponses;
+<span class="c-keyword">import</span> org.springframework.core.annotation.AliasFor;
+<span class="c-keyword">import</span> org.springframework.http.ProblemDetail;
+
+<span class="c-keyword">import</span> java.lang.annotation.*;
+
+<span class="c-comment">/**
+ * 201 Created + 409 Conflict (Duplicate resource) + Ortak RFC 7807 Hata Yanıtları.
+ */</span>
+<span class="c-annotation">@Target</span>(ElementType.<span class="c-var">METHOD</span>)
+<span class="c-annotation">@Retention</span>(RetentionPolicy.<span class="c-var">RUNTIME</span>)
+<span class="c-annotation">@Documented</span>
+<span class="c-annotation">@ApiCommonResponses</span>
+<span class="c-annotation">@ApiResponses</span>({
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"201"</span>,
+                description = <span class="c-string">"Kaynak başarıyla oluşturuldu"</span>
+        ),
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"409"</span>,
+                description = <span class="c-string">"Veritabanı kısıt/çakışma hatası (Duplicate resource) (RFC 7807)"</span>,
+                content = <span class="c-annotation">@Content</span>(mediaType = <span class="c-string">"application/problem+json"</span>, schema = <span class="c-annotation">@Schema</span>(implementation = <span class="c-type">ProblemDetail</span>.<span class="c-keyword">class</span>))
+        )
+})
+<span class="c-keyword">public @interface</span> <span class="c-type">ApiCreateResponse</span> {
+    <span class="c-annotation">@AliasFor</span>(annotation = <span class="c-type">ApiResponse</span>.<span class="c-keyword">class</span>, attribute = <span class="c-string">"description"</span>)
+    <span class="c-type">String</span> <span class="c-method">description</span>() <span class="c-keyword">default</span> <span class="c-string">"Kaynak başarıyla oluşturuldu"</span>;
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- @ApiDeleteResponse -->
+        <div id="tab-meta-delete" class="tab-content">
+          <div class="code-box">
+            <div class="code-topbar">
+              <div class="code-title">
+                <span class="code-badge">META-ANNOTATION</span>
+                <span>com.enterprise.common.openapi.ApiDeleteResponse.java</span>
+              </div>
+              <button class="btn-copy" onclick="copyCode(this)"><span>Kopyala</span></button>
+            </div>
+            <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.common.openapi;
+
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Content;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.media.Schema;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponse;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.responses.ApiResponses;
+<span class="c-keyword">import</span> org.springframework.http.ProblemDetail;
+
+<span class="c-keyword">import</span> java.lang.annotation.*;
+
+<span class="c-comment">/**
+ * 204 No Content + 404 Not Found + Ortak RFC 7807 Hataları.
+ */</span>
+<span class="c-annotation">@Target</span>(ElementType.<span class="c-var">METHOD</span>)
+<span class="c-annotation">@Retention</span>(RetentionPolicy.<span class="c-var">RUNTIME</span>)
+<span class="c-annotation">@Documented</span>
+<span class="c-annotation">@ApiCommonResponses</span>
+<span class="c-annotation">@ApiResponses</span>({
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"204"</span>,
+                description = <span class="c-string">"Kaynak başarıyla silindi (İçerik dönmez)"</span>,
+                content = <span class="c-annotation">@Content</span>
+        ),
+        <span class="c-annotation">@ApiResponse</span>(
+                responseCode = <span class="c-string">"404"</span>,
+                description = <span class="c-string">"Silinmek istenen kaynak bulunamadı (RFC 7807)"</span>,
+                content = <span class="c-annotation">@Content</span>(mediaType = <span class="c-string">"application/problem+json"</span>, schema = <span class="c-annotation">@Schema</span>(implementation = <span class="c-type">ProblemDetail</span>.<span class="c-keyword">class</span>))
+        )
+})
+<span class="c-keyword">public @interface</span> <span class="c-type">ApiDeleteResponse</span> {
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 5: TEMİZ REST CONTROLLER ÖRNEĞİ -->
+    <section id="asama-5">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 5</div>
+        <h2 class="section-title">Temiz REST Controller Implementasyonu</h2>
+        <p class="section-desc">Meta-anotasyonlar ile süslenmiş, HTTP izolasyonunu eksiksiz uygulayan referans Controller sınıfı.</p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-topbar">
+          <div class="code-title">
+            <span class="code-badge">CONTROLLER</span>
+            <span>com.enterprise.coreapi.controller.UserController.java</span>
+          </div>
+          <button class="btn-copy" onclick="copyCode(this)"><span>Kodu Kopyala</span></button>
+        </div>
+        <pre class="code-content"><code><span class="c-keyword">package</span> com.enterprise.coreapi.controller;
+
+<span class="c-keyword">import</span> com.enterprise.common.filter.TraceIdFilter;
+<span class="c-keyword">import</span> com.enterprise.common.openapi.*;
+<span class="c-keyword">import</span> com.enterprise.common.response.ApiResponse;
+<span class="c-keyword">import</span> com.enterprise.common.response.PageResponse;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.CreateUserRequest;
+<span class="c-keyword">import</span> com.enterprise.coreapi.dto.UserDto;
+<span class="c-keyword">import</span> com.enterprise.coreapi.service.UserService;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.Operation;
+<span class="c-keyword">import</span> io.swagger.v3.oas.annotations.tags.Tag;
+<span class="c-keyword">import</span> jakarta.validation.Valid;
+<span class="c-keyword">import</span> lombok.RequiredArgsConstructor;
+<span class="c-keyword">import</span> org.slf4j.MDC;
+<span class="c-keyword">import</span> org.springframework.data.domain.Pageable;
+<span class="c-keyword">import</span> org.springframework.http.HttpStatus;
+<span class="c-keyword">import</span> org.springframework.http.ResponseEntity;
+<span class="c-keyword">import</span> org.springframework.web.bind.annotation.*;
+
+<span class="c-annotation">@RestController</span>
+<span class="c-annotation">@RequestMapping</span>(<span class="c-string">"/api/v1/users"</span>)
+<span class="c-annotation">@RequiredArgsConstructor</span>
+<span class="c-annotation">@Tag</span>(name = <span class="c-string">"User Management"</span>, description = <span class="c-string">"Kullanıcı profil, listeleme ve kayıt operasyonları"</span>)
+<span class="c-keyword">public class</span> <span class="c-type">UserController</span> {
+
+    <span class="c-keyword">private final</span> <span class="c-type">UserService</span> userService;
+
+    <span class="c-comment">// 1. TEKİL GETİRME: 200 OK + 404 + 400 + 401 + 403 + 500</span>
+    <span class="c-annotation">@GetMapping</span>(<span class="c-string">"/{id}"</span>)
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"Kullanıcı Detayı"</span>, description = <span class="c-string">"Verilen ID'ye ait kullanıcının profilini getirir."</span>)
+    <span class="c-annotation">@ApiGetResponse</span>(description = <span class="c-string">"Kullanıcı başarıyla bulundu"</span>)
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">UserDto</span>&gt;&gt; <span class="c-method">getUser</span>(<span class="c-annotation">@PathVariable</span> <span class="c-type">String</span> id) {
+        <span class="c-type">UserDto</span> user = userService.<span class="c-method">getById</span>(id);
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(user, traceId));
+    }
+
+    <span class="c-comment">// 2. SAYFALANMIŞ LİSTELEME: 200 OK + 400 + 401 + 403 + 500</span>
+    <span class="c-annotation">@GetMapping</span>
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"Sayfalanmış Kullanıcı Listesi"</span>, description = <span class="c-string">"Sistemdeki kullanıcıları sayfalar halinde getirir."</span>)
+    <span class="c-annotation">@ApiCommonResponses</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">PageResponse</span>&lt;<span class="c-type">UserDto</span>&gt;&gt;&gt; <span class="c-method">getUsers</span>(<span class="c-type">Pageable</span> pageable) {
+        <span class="c-type">PageResponse</span>&lt;<span class="c-type">UserDto</span>&gt; page = <span class="c-type">PageResponse</span>.<span class="c-method">of</span>(userService.<span class="c-method">getAll</span>(pageable));
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">ok</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(page, traceId));
+    }
+
+    <span class="c-comment">// 3. YENİ KAYIT: 201 CREATED + 409 + 400 + 401 + 403 + 500</span>
+    <span class="c-annotation">@PostMapping</span>
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"Yeni Kullanıcı Oluştur"</span>, description = <span class="c-string">"Sistemde yeni bir kullanıcı kaydı açar."</span>)
+    <span class="c-annotation">@ApiCreateResponse</span>(description = <span class="c-string">"Kullanıcı hesabı başarıyla açıldı"</span>)
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">ApiResponse</span>&lt;<span class="c-type">UserDto</span>&gt;&gt; <span class="c-method">createUser</span>(<span class="c-annotation">@Valid</span> <span class="c-annotation">@RequestBody</span> <span class="c-type">CreateUserRequest</span> request) {
+        <span class="c-type">UserDto</span> created = userService.<span class="c-method">create</span>(request);
+        <span class="c-type">String</span> traceId = <span class="c-type">MDC</span>.<span class="c-method">get</span>(<span class="c-type">TraceIdFilter</span>.<span class="c-var">MDC_TRACE_ID_KEY</span>);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">status</span>(<span class="c-type">HttpStatus</span>.<span class="c-var">CREATED</span>)
+                .<span class="c-method">body</span>(<span class="c-type">ApiResponse</span>.<span class="c-method">success</span>(created, <span class="c-string">"User created successfully"</span>, traceId));
+    }
+
+    <span class="c-comment">// 4. SİLME: 204 NO CONTENT + 404 + 400 + 401 + 403 + 500</span>
+    <span class="c-annotation">@DeleteMapping</span>(<span class="c-string">"/{id}"</span>)
+    <span class="c-annotation">@Operation</span>(summary = <span class="c-string">"Kullanıcı Sil"</span>, description = <span class="c-string">"ID'si verilen kullanıcıyı sistemden siler."</span>)
+    <span class="c-annotation">@ApiDeleteResponse</span>
+    <span class="c-keyword">public</span> <span class="c-type">ResponseEntity</span>&lt;<span class="c-type">Void</span>&gt; <span class="c-method">deleteUser</span>(<span class="c-annotation">@PathVariable</span> <span class="c-type">String</span> id) {
+        userService.<span class="c-method">delete</span>(id);
+        <span class="c-keyword">return</span> <span class="c-type">ResponseEntity</span>.<span class="c-method">noContent</span>().<span class="c-method">build</span>();
+    }
+}</code></pre>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 6: SWAGGER UI ENTEGRASYONU -->
+    <section id="asama-6">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 6</div>
+        <h2 class="section-title">Swagger UI Canlı Şema &amp; RFC 7807 Eşleşmesi</h2>
+        <p class="section-desc">Uygulama ayağa kalktığında <code>/swagger-ui.html</code> adresinde üretilen OpenAPI sözleşmesinin anatomisi.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-title">🌐 Swagger UI Erişim Bilgileri</div>
+        <div class="card-text">
+          <ul>
+            <li><strong>Swagger UI Web Arayüzü:</strong> <code>http://localhost:8080/swagger-ui.html</code> (veya <code>http://localhost:8080/swagger-ui/index.html</code>)</li>
+            <li><strong>OpenAPI v3 JSON Spesifikasyonu:</strong> <code>http://localhost:8080/v3/api-docs</code></li>
+            <li><strong>Yetkilendirme Testi:</strong> Sağ üstteki <strong>Authorize</strong> butonuna tıklayarak JWT token'ınızı <code>Bearer {token}</code> şeklinde girebilir ve kilitli endpoint'leri test edebilirsiniz.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>HTTP Metodu &amp; Yol</th>
+              <th>Özet (Summary)</th>
+              <th>Başarılı Yanıt</th>
+              <th>Hata Yanıtları (RFC 7807)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span style="color: var(--cyan); font-weight: 700;">GET</span> <code>/api/v1/users/{id}</code></td>
+              <td>Kullanıcı Detayı</td>
+              <td><code>200 OK</code> &rarr; <code>ApiResponse&lt;UserDto&gt;</code></td>
+              <td><code>400, 401, 403, 404, 500</code> &rarr; <code>ProblemDetail</code></td>
+            </tr>
+            <tr>
+              <td><span style="color: var(--cyan); font-weight: 700;">GET</span> <code>/api/v1/users</code></td>
+              <td>Sayfalanmış Kullanıcı Listesi</td>
+              <td><code>200 OK</code> &rarr; <code>ApiResponse&lt;PageResponse&lt;UserDto&gt;&gt;</code></td>
+              <td><code>400, 401, 403, 500</code> &rarr; <code>ProblemDetail</code></td>
+            </tr>
+            <tr>
+              <td><span style="color: var(--green); font-weight: 700;">POST</span> <code>/api/v1/users</code></td>
+              <td>Yeni Kullanıcı Oluştur</td>
+              <td><code>201 CREATED</code> &rarr; <code>ApiResponse&lt;UserDto&gt;</code></td>
+              <td><code>400, 401, 403, 409, 500</code> &rarr; <code>ProblemDetail</code></td>
+            </tr>
+            <tr>
+              <td><span style="color: var(--rose); font-weight: 700;">DELETE</span> <code>/api/v1/users/{id}</code></td>
+              <td>Kullanıcı Sil</td>
+              <td><code>204 NO CONTENT</code> (Boş Gövde)</td>
+              <td><code>400, 401, 403, 404, 500</code> &rarr; <code>ProblemDetail</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <!-- AŞAMA 7: MİMARİ KONTROL LİSTESİ -->
+    <section id="asama-7">
+      <div class="section-head">
+        <div class="section-eyebrow">AŞAMA 7</div>
+        <h2 class="section-title">Kurumsal Mimari Kontrol Listesi (Developer Checklist)</h2>
+        <p class="section-desc">Controller ve Service sınıflarını commit etmeden önce kontrol edilmesi zorunlu mimari kurallar.</p>
+      </div>
+
+      <ul class="checklist">
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>Service Katmanı HTTP İzolasyonu:</strong> Service sınıflarında <code>org.springframework.http.*</code>, <code>ResponseEntity</code>, <code>HttpStatus</code> veya <code>ApiResponse</code> import'u <u>kesinlikle bulunmuyor mu</u>?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>İstisna Yönetimi Sorumluluğu:</strong> Service katmanı bulunamayan veya çakışan kayıtlarda HTTP üretmek yerine domain exception fırlatıyor mu (<code>ResourceNotFoundException</code>, <code>BusinessException</code>)?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>Meta-Anotasyon Kullanımı:</strong> Endpoint'ler üzerinde ham ve tekrar eden <code>@ApiResponses</code> blokları yerine <code>@ApiGetResponse</code>, <code>@ApiCreateResponse</code> veya <code>@ApiCommonResponses</code> kullanıldı mı?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>OpenAPI Güvenlik Tanımı:</strong> <code>OpenAPIConfig</code> sınıfı projeye dahil edilip JWT <code>BearerAuth</code> şeması tanımlandı mı?
+          </div>
+        </li>
+        <li class="checklist-item">
+          <span class="checklist-check">✓</span>
+          <div>
+            <strong>Delete Operasyonları Statüsü:</strong> Silme endpoint'leri gövde dönmüyorsa <code>204 NO CONTENT</code> statüsüyle dönüyor mu?
+          </div>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script>
+    // Sekme Değiştirici
+    function switchCodeTab(btn, tabId) {
+      const container = btn.closest('.tab-container');
+      container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      btn.classList.add('active');
+      const target = container.querySelector('#' + tabId);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+
+    // Kod Kopyalama Fonksiyonu
+    function copyCode(btn) {
+      const box = btn.closest('.code-box');
+      const code = box.querySelector('pre code').innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '<span>✓ Kopyalandı!</span>';
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = originalText;
+        }, 2000);
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+      });
+    }
+
+    // Sidebar Scroll Spy (Aktif Sekme Takibi)
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section');
+      const navLinks = document.querySelectorAll('nav.nav-menu a');
+
+      let currentSection = '';
+      sections.forEach(section => {
+        const top = section.offsetTop - 120;
+        if (window.scrollY >= top) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + currentSection) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

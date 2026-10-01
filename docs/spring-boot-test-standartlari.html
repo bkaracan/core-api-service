@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Boot 4.1.1 Kurumsal Test Standartları</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-alt: #161f30;
+      --panel-card: #1e293b;
+      --border: #1f2937;
+      --border-light: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
+      --code-bg: #030712;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1120;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.5rem 0.75rem 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      color: #fff;
+      background: var(--panel-card);
+    }
+
+    .nav-item.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.1);
+      font-weight: 600;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .nav-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .nav-item.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+    }
+
+    .sidebar-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 3rem 4rem 6rem;
+      max-width: 1200px;
+      overflow-x: hidden;
+    }
+
+    /* Hero / Header */
+    .hero {
+      margin-bottom: 3.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--green);
+      background: var(--green-glow);
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p.lead {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 850px;
+      margin-bottom: 1.5rem;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge-cyan { background: var(--cyan-glow); color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .badge-green { background: var(--green-glow); color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+    .badge-amber { background: var(--amber-glow); color: var(--amber); border-color: rgba(245, 158, 11, 0.3); }
+    .badge-purple { background: var(--purple-glow); color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    /* Sections */
+    section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--cyan);
+      color: #000;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Cards & Containers */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* Callouts */
+    .callout {
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: rgba(6, 182, 212, 0.08);
+      border-left-color: var(--cyan);
+      color: #cffafe;
+    }
+
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border-left-color: var(--amber);
+      color: #fef3c7;
+    }
+
+    .callout-danger {
+      background: rgba(244, 63, 94, 0.08);
+      border-left-color: var(--rose);
+      color: #ffe4e6;
+    }
+
+    .callout-success {
+      background: rgba(16, 185, 129, 0.08);
+      border-left-color: var(--green);
+      color: #d1fae5;
+    }
+
+    .callout strong {
+      color: #fff;
+    }
+
+    /* Tabs */
+    .tabs-wrap {
+      margin: 1.25rem 0;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+
+    .tab-trigger {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tab-trigger:hover {
+      color: #fff;
+      background: var(--panel);
+    }
+
+    .tab-trigger.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.12);
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Code Boxes */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0d1424;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+    }
+
+    .code-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .dot-group {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+
+    .copy-btn {
+      background: var(--panel-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border-light);
+      padding: 0.25rem 0.65rem;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--border-light);
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+    }
+
+    pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      margin: 1.25rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #0d1527;
+      padding: 0.85rem 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82em;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #f1f5f9;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #000;
+      padding: 0.65rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand-box">
+      <span class="brand-badge">Enterprise Standards</span>
+      <h2 class="brand-title">Testing Standards</h2>
+      <p class="brand-subtitle">Spring Boot 4.1.1 + Java 21</p>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">MİMARİ PRENSİPLER</div>
+      <a href="#s1-pyramid-h2" class="nav-item active">
+        <span class="nav-num">1</span>
+        <span>Test Piramidi &amp; H2 Yasağı</span>
+      </a>
+      <a href="#s2-unit-tests" class="nav-item">
+        <span class="nav-num">2</span>
+        <span>Hızlı Birim Testler (Mockito)</span>
+      </a>
+      <a href="#s3-webmvc-slice" class="nav-item">
+        <span class="nav-num">3</span>
+        <span>WebMvc Testi &amp; @MockitoBean</span>
+      </a>
+      <a href="#s4-datajpa-slice" class="nav-item">
+        <span class="nav-num">4</span>
+        <span>DataJpa &amp; Testcontainers</span>
+      </a>
+      <a href="#s5-fluent-assertj" class="nav-item">
+        <span class="nav-num">5</span>
+        <span>Akıcı Doğrulama (AssertJ)</span>
+      </a>
+
+      <div class="nav-label">UYGULAMA &amp; ŞABLONLAR</div>
+      <a href="#s6-bdd-structure" class="nav-item">
+        <span class="nav-num">6</span>
+        <span>BDD Given-When-Then</span>
+      </a>
+      <a href="#s7-code-blueprints" class="nav-item">
+        <span class="nav-num">7</span>
+        <span>Üretime Hazır Kod Şablonları</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      Kurumsal Test Mimarisi ve Kalite Standartları &copy; 2026
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        Enterprise Testing Architecture Blueprint
+      </div>
+      <h1>Kurumsal Test Stratejisi &amp; Standartları</h1>
+      <p class="lead">
+        Spring Boot 4.1.1 mikroservislerinde sahte güven veren H2 veritabanını yasaklayan, gerçek PostgreSQL 16 container'ı üzerinde <strong>Testcontainers (<code>@ServiceConnection</code>)</strong> koşturan, saf Mockito birim testleri ve modern <strong><code>@MockitoBean</code></strong> WebMvc dilim test rehberi.
+      </p>
+
+      <div class="badges-row">
+        <span class="badge badge-cyan">Java 21 LTS / Spring Boot 4.1.1</span>
+        <span class="badge badge-green">Pure Mockito Unit Tests (&lt;20ms)</span>
+        <span class="badge badge-purple">Modern @MockitoBean WebMvc Slice</span>
+        <span class="badge badge-amber">No H2! Real PostgreSQL 16 Container</span>
+        <span class="badge">Testcontainers @ServiceConnection</span>
+        <span class="badge badge-green">AssertJ Fluent API</span>
+      </div>
+    </header>
+
+    <!-- BÖLÜM 1: TEST PİRAMİDİ & H2 YASAĞI -->
+    <section id="s1-pyramid-h2">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">1</span>
+          Üç Katmanlı Test Piramidi &amp; H2 Database Yasağı
+        </h2>
+        <p class="section-desc">
+          Kurumsal mikroservis test stratejisi hız, güvenilirlik ve üretim ortamı sadakatini dengeler.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card" style="border-top: 4px solid var(--green);">
+          <div class="card-title" style="color: var(--green);">⚡ 1. Birim Testler (Unit)</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+            <strong>Kapsam:</strong> Servis katmanı iş kuralları.<br>
+            <strong>Araç:</strong> JUnit 5 + Mockito.<br>
+            <strong>Spring Context:</strong> YOK (Saf Java).<br>
+            <strong>Çalışma Süresi:</strong> 5-20 milisaniye.
+          </p>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--purple);">
+          <div class="card-title" style="color: var(--purple);">🍰 2. Dilim Testleri (Slice)</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+            <strong>Kapsam:</strong> Controller (WebMvc) veya Repository (DataJpa).<br>
+            <strong>Araç:</strong> <code>@WebMvcTest</code> + <code>@MockitoBean</code>.<br>
+            <strong>Spring Context:</strong> Yalnızca ilgili dilim.<br>
+            <strong>Çalışma Süresi:</strong> 200-500 milisaniye.
+          </p>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--cyan);">
+          <div class="card-title" style="color: var(--cyan);">🐳 3. Entegrasyon (Integration)</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+            <strong>Kapsam:</strong> Uçtan uca API, DB ve Flyway.<br>
+            <strong>Araç:</strong> <code>@SpringBootTest</code> + Testcontainers.<br>
+            <strong>Spring Context:</strong> Tam uygulama + PostgreSQL 16.<br>
+            <strong>Çalışma Süresi:</strong> 1-3 saniye.
+          </p>
+        </div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--rose);">
+        <div class="card-title" style="color: var(--rose);">❌ Neden H2 Veritabanı Kesinlikle Yasaktır?</div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+          Yıllarca kullanılan H2 in-memory veritabanı, modern kurumsal mikroservislerde <strong>sahte bir güven illüzyonu yaratır ve canlı ortamda çökmelere neden olur:</strong>
+        </p>
+        <div class="table-container" style="margin-top: 0.75rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Özellik / Senaryo</th>
+                <th>❌ H2 Database (In-Memory)</th>
+                <th>✅ Testcontainers PostgreSQL 16</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Flyway Migration</strong></td>
+                <td>Postgres'e özgü DDL'lerde hata verir veya çalışmaz.</td>
+                <td>Canlı ortamla %100 birebir aynı migration'ları koşar.</td>
+              </tr>
+              <tr>
+                <td><strong>citext (Case-Insensitive)</strong></td>
+                <td>Desteklemez. Test patlar.</td>
+                <td>Tam destekler, e-posta/kullanıcı adı testleri kusursuz geçer.</td>
+              </tr>
+              <tr>
+                <td><strong>Soft Delete Kısmi İndeks</strong></td>
+                <td><code>WHERE deleted = false</code> indeks sözdizimini tanımaz.</td>
+                <td>Kısmi indeks performansını ve UNIQUE kuralını doğrular.</td>
+              </tr>
+              <tr>
+                <td><strong>TIMESTAMPTZ &amp; UUID</strong></td>
+                <td>Saat dilimi sapmaları (Timezone drift) yaşanır.</td>
+                <td>UTC saat dilimine ve <code>gen_random_uuid()</code> fonksiyonuna tam sadık kalır.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 2: HIZLI BİRİM TESTLER -->
+    <section id="s2-unit-tests">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">2</span>
+          Hızlı Birim Testler (Zero Spring Context in Unit Tests)
+        </h2>
+        <p class="section-desc">
+          Servis katmanının iş mantığını test ederken <code>@SpringBootTest</code> KULLANILMAZ. Spring konteynerini ayağa kaldırmak test süresini katlayarak CI/CD pipeline'ını yavaşlatır.
+        </p>
+      </div>
+
+      <div class="callout callout-info">
+        <p>
+          <strong>Saf Mockito Standardı: <code>@ExtendWith(MockitoExtension.class)</code></strong><br>
+          Spring context'i başlatılmadığı için yüzlerce servis testi yalnızca 1-2 saniye içinde tamamlanır. Bağımlılıklar (Repository, Mapper, AuditorAware) <code>@Mock</code> ile taklit edilir; test edilen sınıf <code>@InjectMocks</code> ile enjekte edilir.
+        </p>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 3: CONTROLLER DİLİM TESTİ -->
+    <section id="s3-webmvc-slice">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">3</span>
+          Controller Web Dilim Testi &amp; Modern @MockitoBean
+        </h2>
+        <p class="section-desc">
+          HTTP sözleşmesini, URL haritalamalarını, `@Valid` bean validasyonunu ve hata yanıtlarını tüm uygulamayı ayağa kaldırmadan izole test eder.
+        </p>
+      </div>
+
+      <div class="callout callout-warning">
+        <p>
+          <strong>Spring Boot 4.1.1 / Spring 6.2+ Devrimi: <code>@MockitoBean</code></strong><br>
+          Eski Spring sürümlerinde kullanılan <code>@MockBean</code> ve <code>@SpyBean</code> anotasyonları Spring Boot 3.4+ ve 4.x ile birlikte <strong>kullanımdan kaldırılmıştır (deprecated)</strong>. Artık doğrudan Spring Test Framework standardı olan <code>org.springframework.test.context.bean.override.mockito.MockitoBean</code> kullanılır.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔍 WebMvc Dilim Testinin Doğruladığı Kritik Unsurlar</div>
+        <ul style="font-size: 0.88rem; color: var(--text-muted); padding-left: 1.5rem; line-height: 1.8;">
+          <li><strong>HTTP Status Kodları:</strong> Başarılı kayıtta <code>201 Created</code>, okumada <code>200 OK</code>, silmede <code>204 No Content</code>.</li>
+          <li><strong>Bean Validation Fail-Fast:</strong> Boş isim veya negatif fiyat gönderildiğinde Controller'a girmeden <code>400 Bad Request</code> ve <code>VALIDATION_ERROR</code> dönmesi.</li>
+          <li><strong>Envelope Formatı:</strong> Yanıtın kurumsal <code>ApiResponse&lt;T&gt;</code> sözleşmesine (success, data, error, timestamp) uygun paketlenmesi.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 4: DATAJPA & TESTCONTAINERS -->
+    <section id="s4-datajpa-slice">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">4</span>
+          DataJpa Testi &amp; Testcontainers @ServiceConnection
+        </h2>
+        <p class="section-desc">
+          Özel JPQL sorguları, Hibernate mapping kuralları, `@SQLRestriction` soft-delete filtreleri ve kısmi indeksleri gerçek PostgreSQL üzerinde test eder.
+        </p>
+      </div>
+
+      <div class="callout callout-success">
+        <p>
+          <strong>Sıfır Konfigürasyon: <code>@ServiceConnection</code></strong><br>
+          Spring Boot 3.1+ ile gelen <code>@ServiceConnection</code> anotasyonu sayesinde, test sınıfı içinde tanımlanan <code>PostgreSQLContainer</code>'ın dinamik portu ve JDBC URL'i Spring DataSource'a otomatik bağlanır. Manuel <code>@DynamicPropertySource</code> kodlarına gerek kalmaz!
+        </p>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 5: AKICI DOĞRULAMA (ASSERTJ) -->
+    <section id="s5-fluent-assertj">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">5</span>
+          Akıcı Doğrulama Standardı (AssertJ Fluent API)
+        </h2>
+        <p class="section-desc">
+          Testlerde JUnit'in ilkel assertion metotları yerine okunabilirliği yüksek, hata anında detaylı teşhis sağlayan AssertJ <code>assertThat()</code> standardı zorunludur.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--rose);">
+          <div class="card-title" style="color: var(--rose);">❌ İlkel JUnit Assertion (Yasaklı)</div>
+          <div class="code-box">
+            <pre><code>assertEquals("Laptop", res.name());
+assertTrue(res.price().doubleValue() > 0);
+assertNotNull(res.publicId());
+assertFalse(res.deleted());</code></pre>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-dim);">Hata anında: "expected: true but was: false" gibi anlamsız mesajlar üretir.</p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--green);">
+          <div class="card-title" style="color: var(--green);">✅ AssertJ Fluent Assertion (Standart)</div>
+          <div class="code-box">
+            <pre><code>assertThat(res.name()).isEqualTo("Laptop");
+assertThat(res.price()).isPositive();
+assertThat(res.publicId()).isNotNull();
+assertThat(res.deleted()).isFalse();</code></pre>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-dim);">Hata anında nesnenin tüm alanlarını ve beklenen değerle farkını detaylı gösterir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 6: BDD GIVEN-WHEN-THEN -->
+    <section id="s6-bdd-structure">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">6</span>
+          BDD Test İsimlendirme ve Given-When-Then Disiplini
+        </h2>
+        <p class="section-desc">
+          Her test metodu kendini belgeleyen bir dokümandır. BDD standartlarında yapılandırılmalıdır.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📐 Standart Test Metodu Şablonu</div>
+        <div class="code-box">
+          <pre><code>@Test
+@DisplayName("Gecerli istek ile urun basariyla olusturulmalidir")
+void should_create_product_when_request_is_valid() {
+    // given: Test girdileri ve mock davranışları hazırlanır
+    CreateProductRequest request = new CreateProductRequest("Laptop", "PROD-001", new BigDecimal("1500.00"), 10);
+    when(productRepository.existsByCode("PROD-001")).thenReturn(false);
+
+    // when: Test edilen iş metodu tetiklenir
+    ProductResponse actual = productService.createProduct(request);
+
+    // then: Sonuçlar AssertJ ve Mockito verify ile doğrulanır
+    assertThat(actual).isNotNull();
+    assertThat(actual.code()).isEqualTo("PROD-001");
+    verify(productRepository).save(any());
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 7: KOD ŞABLONLARI -->
+    <section id="s7-code-blueprints">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">7</span>
+          Üretime Hazır Kod Şablonları (Spring Boot 4.1.1)
+        </h2>
+        <p class="section-desc">
+          Projede doğrudan kullanılabilecek tam ve doğrulanmış test sınıfları.
+        </p>
+      </div>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-unit')">1. Servis Birim Testi (Mockito)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-controller')">2. Controller Dilim Testi (@WebMvcTest)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-repo')">3. Repository Testi (@DataJpaTest)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-abstract')">4. Taban Testcontainers Sınıfı</button>
+        </div>
+
+        <!-- TAB 1: UNIT TEST -->
+        <div id="tab-unit" class="tab-content active">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>src/test/java/com/enterprise/coreapi/service/ProductServiceImplTest.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeUnit', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeUnit">@ExtendWith(MockitoExtension.class)
+@DisplayName("ProductServiceImpl Unit Tests")
+class ProductServiceImplTest {
+
+    @Mock
+    private ProductRepository productRepository;
+
+    @Mock
+    private ProductMapper productMapper;
+
+    @Mock
+    private SecurityAuditorAware securityAuditorAware;
+
+    @InjectMocks
+    private ProductServiceImpl productService;
+
+    @Test
+    @DisplayName("Gecerli istek ile urun basariyla olusturulmalidir")
+    void should_create_product_when_request_is_valid() {
+        // given
+        CreateProductRequest request = new CreateProductRequest("Laptop", "PROD-001", new BigDecimal("1500.00"), 10);
+        Product entity = new Product();
+        Product savedEntity = new Product();
+        UUID publicId = UUID.randomUUID();
+        savedEntity.setPublicId(publicId);
+
+        ProductResponse expected = new ProductResponse(publicId, "Laptop", "PROD-001", new BigDecimal("1500.00"), 10, "ACTIVE", Instant.now(), Instant.now());
+
+        when(productRepository.existsByCode("PROD-001")).thenReturn(false);
+        when(productMapper.toEntity(request)).thenReturn(entity);
+        when(productRepository.save(entity)).thenReturn(savedEntity);
+        when(productMapper.toResponse(savedEntity)).thenReturn(expected);
+
+        // when
+        ProductResponse actual = productService.createProduct(request);
+
+        // then
+        assertThat(actual).isNotNull();
+        assertThat(actual.publicId()).isEqualTo(publicId);
+        verify(productRepository).save(entity);
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 2: CONTROLLER TEST -->
+        <div id="tab-controller" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>src/test/java/com/enterprise/coreapi/controller/ProductControllerTest.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeController', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeController">@WebMvcTest(ProductController.class)
+@DisplayName("ProductController WebMvc Slice Tests")
+class ProductControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    // Spring Boot 4.1.1 standardı: @MockBean yerine @MockitoBean
+    @MockitoBean
+    private ProductService productService;
+
+    @Test
+    @WithMockUser
+    @DisplayName("Gecerli istek ile 201 Created ve olusturulan urun donmelidir")
+    void should_create_product_and_return_201_created() throws Exception {
+        UUID publicId = UUID.randomUUID();
+        CreateProductRequest request = new CreateProductRequest("MacBook Pro", "MBP-14", new BigDecimal("1999.00"), 5);
+        ProductResponse response = new ProductResponse(publicId, "MacBook Pro", "MBP-14", new BigDecimal("1999.00"), 5, "ACTIVE", Instant.now(), Instant.now());
+
+        when(productService.createProduct(any(CreateProductRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/products")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.publicId").value(publicId.toString()))
+                .andExpect(jsonPath("$.data.code").value("MBP-14"));
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 3: REPO TEST -->
+        <div id="tab-repo" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>src/test/java/com/enterprise/coreapi/repository/ProductRepositoryIntegrationTest.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeRepo', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeRepo">@DataJpaTest
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@DisplayName("ProductRepository Integration Tests (PostgreSQL Testcontainers)")
+class ProductRepositoryIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Test
+    @DisplayName("publicId ile kayitli urun bulunabilmelidir")
+    void should_find_product_by_public_id() {
+        UUID publicId = UUID.randomUUID();
+        Product product = new Product();
+        product.setPublicId(publicId);
+        product.setName("Monitor");
+        product.setCode("MON-4K");
+        product.setPrice(new BigDecimal("499.00"));
+        product.setStock(20);
+        product.setCreatedBy("TEST_USER");
+        product.setLastModifiedBy("TEST_USER");
+
+        productRepository.save(product);
+
+        Optional&lt;Product&gt; found = productRepository.findByPublicId(publicId);
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getCode()).isEqualTo("MON-4K");
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- TAB 4: ABSTRACT BASE TEST -->
+        <div id="tab-abstract" class="tab-content">
+          <div class="code-box">
+            <div class="code-bar">
+              <div class="code-bar-title">
+                <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+                <span>src/test/java/com/enterprise/coreapi/AbstractIntegrationTest.java</span>
+              </div>
+              <button class="copy-btn" onclick="copySnippet('codeAbstract', this)">Kopyala</button>
+            </div>
+            <pre><code id="codeAbstract">@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+public abstract class AbstractIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    protected static final PostgreSQLContainer&lt;?&gt; POSTGRES =
+            new PostgreSQLContainer&lt;&gt;("postgres:16-alpine")
+                    .withDatabaseName("test_db")
+                    .withUsername("test_user")
+                    .withPassword("test_password");
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg">Panoya kopyalandı!</span>
+  </div>
+
+  <script>
+    // Copy to Clipboard Utility
+    function copySnippet(elementId, btn) {
+      const el = document.getElementById(elementId);
+      const textToCopy = el.innerText || el.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast('Panoya başarıyla kopyalandı!');
+        if (btn) {
+          const originalText = btn.innerText;
+          btn.classList.add('copied');
+          btn.innerText = 'Kopyalandı!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerText = originalText;
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // Tab Switcher
+    function switchTab(evt, tabId) {
+      const container = evt.currentTarget.closest('.tabs-wrap');
+      const tabs = container.querySelectorAll('.tab-trigger');
+      const contents = container.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      contents.forEach(content => content.classList.remove('active'));
+
+      evt.currentTarget.classList.add('active');
+      const targetContent = container.querySelector('#' + tabId);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    }
+
+    // ScrollSpy for Sidebar
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('section');
+
+    window.addEventListener('scroll', () => {
+      let currentSectionId = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.scrollY >= sectionTop) {
+          currentSectionId = section.getAttribute('id');
+        }
+      });
+
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + currentSectionId) {
+          item.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

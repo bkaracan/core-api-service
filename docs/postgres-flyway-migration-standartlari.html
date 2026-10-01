@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostgreSQL 16+ &amp; Flyway Migration Standartları - Spring Boot 4.1.1</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-alt: #161f30;
+      --panel-card: #1e293b;
+      --border: #1f2937;
+      --border-light: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
+      --code-bg: #030712;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 320px;
+      border-right: 1px solid var(--border);
+      background: #0b1120;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-box {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      background: var(--cyan-glow);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    nav.nav-menu {
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0.5rem 0.75rem 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      color: #fff;
+      background: var(--panel-card);
+    }
+
+    .nav-item.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.1);
+      font-weight: 600;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .nav-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .nav-item.active .nav-num {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+    }
+
+    .sidebar-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 3rem 4rem 6rem;
+      max-width: 1200px;
+      overflow-x: hidden;
+    }
+
+    /* Hero / Header */
+    .hero {
+      margin-bottom: 3.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--green);
+      background: var(--green-glow);
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p.lead {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 850px;
+      margin-bottom: 1.5rem;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge-cyan { background: var(--cyan-glow); color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+    .badge-green { background: var(--green-glow); color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+    .badge-amber { background: var(--amber-glow); color: var(--amber); border-color: rgba(245, 158, 11, 0.3); }
+    .badge-purple { background: var(--purple-glow); color: var(--purple); border-color: rgba(168, 85, 247, 0.3); }
+
+    /* Sections */
+    section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--cyan);
+      color: #000;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Cards & Containers */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* Callouts */
+    .callout {
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: rgba(6, 182, 212, 0.08);
+      border-left-color: var(--cyan);
+      color: #cffafe;
+    }
+
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border-left-color: var(--amber);
+      color: #fef3c7;
+    }
+
+    .callout-danger {
+      background: rgba(244, 63, 94, 0.08);
+      border-left-color: var(--rose);
+      color: #ffe4e6;
+    }
+
+    .callout-success {
+      background: rgba(16, 185, 129, 0.08);
+      border-left-color: var(--green);
+      color: #d1fae5;
+    }
+
+    .callout strong {
+      color: #fff;
+    }
+
+    /* Tabs */
+    .tabs-wrap {
+      margin: 1.25rem 0;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+
+    .tab-trigger {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tab-trigger:hover {
+      color: #fff;
+      background: var(--panel);
+    }
+
+    .tab-trigger.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.12);
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Code Boxes */
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0d1424;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+    }
+
+    .code-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .dot-group {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+
+    .copy-btn {
+      background: var(--panel-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border-light);
+      padding: 0.25rem 0.65rem;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--border-light);
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+    }
+
+    pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      margin: 1.25rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #0d1527;
+      padding: 0.85rem 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82em;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #f1f5f9;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #000;
+      padding: 0.65rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand-box">
+      <span class="brand-badge">Enterprise Standards</span>
+      <h2 class="brand-title">PostgreSQL &amp; Flyway</h2>
+      <p class="brand-subtitle">Spring Boot 4.1.1 + PostgreSQL 16+</p>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">MİMARİ PRENSİPLER</div>
+      <a href="#s1-source-of-truth" class="nav-item active">
+        <span class="nav-num">1</span>
+        <span>Şemanın Tek Kaynağı</span>
+      </a>
+      <a href="#s2-lock-safe-ddl" class="nav-item">
+        <span class="nav-num">2</span>
+        <span>Kilitlenme Koruması (Lock Timeout)</span>
+      </a>
+      <a href="#s3-postgres-types" class="nav-item">
+        <span class="nav-num">3</span>
+        <span>Modern Tipler &amp; citext</span>
+      </a>
+      <a href="#s4-base-entity-sql" class="nav-item">
+        <span class="nav-num">4</span>
+        <span>BaseEntity SQL Sözleşmesi</span>
+      </a>
+      <a href="#s5-partial-indexes" class="nav-item">
+        <span class="nav-num">5</span>
+        <span>Soft Delete &amp; Kısmi İndeksler</span>
+      </a>
+      
+      <div class="nav-label">YAPILANDIRMA &amp; KRİZ YÖNETİMİ</div>
+      <a href="#s6-application-yml" class="nav-item">
+        <span class="nav-num">6</span>
+        <span>application.yml &amp; HikariCP</span>
+      </a>
+      <a href="#s7-crisis-management" class="nav-item">
+        <span class="nav-num">7</span>
+        <span>Kriz Yönetimi (flyway:repair)</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      Kurumsal Veritabanı ve Şema Sürümleme Mimarisi &copy; 2026
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        Database Architecture &amp; Migration Blueprint
+      </div>
+      <h1>Kurumsal PostgreSQL 16+ &amp; Flyway Standartları</h1>
+      <p class="lead">
+        Spring Boot 4.1.1 mikroservislerinde şema yönetiminin tek sahibinin Flyway olmasını sağlayan, kilitlenme önleyici (lock-safe) DDL pratikleri, PostgreSQL 16 <code>citext</code>, <code>BIGINT IDENTITY</code>, Dual-ID mimarisi, mantıksal silme uyumlu <strong>Kısmi İndeksler (Partial Indexes)</strong> ve sıfır bürokrasi kriz yönetim kılavuzu.
+      </p>
+
+      <div class="badges-row">
+        <span class="badge badge-cyan">Java 21 / Spring Boot 4.1.1</span>
+        <span class="badge badge-purple">PostgreSQL 16+ Alpine</span>
+        <span class="badge badge-green">Flyway Migration Engine</span>
+        <span class="badge badge-amber">Lock-Safe DDL (5s Timeout)</span>
+        <span class="badge">citext Case-Insensitive</span>
+        <span class="badge badge-green">Soft-Delete Partial Indexes</span>
+      </div>
+    </header>
+
+    <!-- BÖLÜM 1: ŞEMANIN TEK KAYNAĞI -->
+    <section id="s1-source-of-truth">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">1</span>
+          Şemanın Tek Kaynağı (Single Source of Truth)
+        </h2>
+        <p class="section-desc">
+          Kurumsal mikroservis mimarilerinde Hibernate'in doğrudan veritabanı şemasını değiştirmesi (<code>ddl-auto: update / create</code>) kesinlikle yasaklanmış kritik bir anti-pattern'dir. Şemanın tek sahibi ve otoritesi Flyway'dir.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--rose);">
+          <div class="card-title" style="color: var(--rose);">❌ Hibernate ddl-auto: update (Yasaklı Yaklaşım)</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            Hibernate tablo ve sütunları otomatik oluşturduğunda:
+          </p>
+          <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem; line-height: 1.7;">
+            <li>Sütun silinmelerini veya tip değişikliklerini asla yapamaz, yetersiz kalır.</li>
+            <li>İndeksleri kontrolsüzce veya verimsiz varsayılanlarla üretir.</li>
+            <li>Üretim (Production) ortamında veri kaybına ve şema sapmalarına (drift) neden olur.</li>
+            <li>Kim, ne zaman, hangi SQL'i çalıştırdı denetim izi (audit) tutulamaz.</li>
+          </ul>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--green);">
+          <div class="card-title" style="color: var(--green);">✅ Flyway + ddl-auto: validate (Kurumsal Standart)</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            Şema sadece versiyonlu SQL dosyalarıyla yönetildiğinde:
+          </p>
+          <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem; line-height: 1.7;">
+            <li>Tüm şema değişiklikleri Git versiyon kontrolü altında incelenebilir (Review).</li>
+            <li>PostgreSQL 16 eklentileri (<code>citext</code>, <code>pgcrypto</code>) ve kısmi indeksler tam güçle kullanılır.</li>
+            <li>Hibernate yalnızca şemanın doğruluğunu onaylar (<code>validate</code>) ve güvenle ayağa kalkar.</li>
+            <li>Testcontainers ve CI/CD süreçleri sıfırdan üretimle %100 özdeş şema kurar.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📁 Flyway Dosya İsimlendirme ve Dizin Yapısı</div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Tüm migration script'leri <code>src/main/resources/db/migration/</code> dizini altında yer almalıdır:
+        </p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Önek / Tip</th>
+                <th>Örnek Dosya Adı</th>
+                <th>Açıklama &amp; Çalışma Mantığı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>V{Sürüm}__</code></td>
+                <td><code>V1__init_extensions_and_base_schema.sql</code></td>
+                <td><strong>Versiyonlu Migration:</strong> Yalnızca bir kez sırasıyla çalışır, checksum kontrolüyle mühürlenir. Çift alt tire (<code>__</code>) zorunludur.</td>
+              </tr>
+              <tr>
+                <td><code>V{Sürüm}__</code></td>
+                <td><code>V2__add_user_phone_number.sql</code></td>
+                <td><strong>Artımlı (Incremental) Değişiklik:</strong> Var olan şemaya yeni tablo, sütun veya indeks ekler.</td>
+              </tr>
+              <tr>
+                <td><code>R__</code></td>
+                <td><code>R__create_active_users_view.sql</code></td>
+                <td><strong>Tekrarlanabilir (Repeatable) Script:</strong> View, Stored Procedure veya Function nesneleri için kullanılır. Dosya içeriği değiştiğinde otomatik tekrar çalışır.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 2: KİLİTLENME KORUMASI -->
+    <section id="s2-lock-safe-ddl">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">2</span>
+          Kilitlenme Koruması (Lock-Safe DDL &amp; Concurrency)
+        </h2>
+        <p class="section-desc">
+          PostgreSQL'de DDL işlemleri (<code>ALTER TABLE</code>, indeksleme) tablo üzerinde <code>ACCESS EXCLUSIVE</code> kilit talep eder. Yoğun çalışan sistemlerde kilit zaman aşımı tanımlanmazsa, arkasından gelen tüm basit <code>SELECT</code> sorguları kuyrukta tıkanır ve tüm uygulama kilitlenir (Connection Starvation).
+        </p>
+      </div>
+
+      <div class="callout callout-warning">
+        <p>
+          <strong>Kritik Kural (Her DDL Script'inin Başına Eklenmelidir):</strong><br>
+          Her <code>V...sql</code> dosyasının ilk satırlarında mutlaka <code>statement_timeout</code> ve <code>lock_timeout</code> parametreleri tanımlanmalıdır. Tablo 5 saniye içinde kilitlenemezse işlem derhal hata vermeli, kilit kuyruğunu tıkamamalıdır.
+        </p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title">
+            <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+            <span>Standart DDL Kilit Zaman Aşımı Başlığı</span>
+          </div>
+          <button class="copy-btn" onclick="copySnippet('codeLockHeader', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeLockHeader">-- 1. Sorgu ve Kilit Zaman Aşımları (Lock Starvation &amp; Hanging DDL Koruması)
+SET statement_timeout = '60s';
+SET lock_timeout = '5s';</code></pre>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💡 PostgreSQL 11+ Güvenli Sütun Ekleme (Lock-Safe Column Addition)</div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+          PostgreSQL 11'den itibaren <code>DEFAULT</code> değeri olan bir sütun eklendiğinde, PostgreSQL tüm tabloyu baştan yazmak zorunda kalmaz (sadece sistem kataloğunu günceller, O(1) maliyet). Bu sayede milyonlarca satırlık tablolara bile anında ve kilitlenme riski olmadan sütun eklenebilir:
+        </p>
+        <div class="code-box" style="margin-top: 0.75rem;">
+          <pre><code>-- Milyonlarca satırlık tabloda dahi 1 milisaniye içinde tamamlanır (Metadata-only rewrite):
+ALTER TABLE users ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE;</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 3: POSTGRESQL 16+ MODERN VERİ TİPLERİ -->
+    <section id="s3-postgres-types">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">3</span>
+          PostgreSQL 16+ Modern Tipler &amp; citext Eklentisi
+        </h2>
+        <p class="section-desc">
+          Modern PostgreSQL veri tipleri performansı maksimize eder, bellek israfını önler ve uygulama katmanındaki karmaşıklığı veritabanı seviyesinde doğal olarak çözer.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title" style="color: var(--cyan);">🔑 BIGINT IDENTITY</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Eski <code>SERIAL</code> veya <code>BIGSERIAL</code> yerine modern SQL standartlarına uygun <code>BIGINT GENERATED ALWAYS AS IDENTITY</code> kullanılır. Otomatik sequence üretir ve manuel ID ezilmesini engeller.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="color: var(--green);">🕒 TIMESTAMPTZ (UTC)</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Asla <code>TIMESTAMP WITHOUT TIME ZONE</code> kullanılmaz! Zaman dilimi belirsizliğini sıfırlamak için daima <code>TIMESTAMPTZ</code> kullanılır ve uygulama UTC saat dilimine mühürlenir.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="color: var(--purple);">🔤 citext Eklentisi</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            E-posta ve kullanıcı adı alanlarında <code>LOWER()</code> fonksiyon indekslerine gerek kalmadan doğal büyük/küçük harf duyarsız (Case-Insensitive) arama sağlar.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔍 citext Eklentisi Neden Hayat Kurtarır?</div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          Klasik <code>VARCHAR</code> sütununda <code>user@example.com</code> ile <code>User@Example.com</code> farklı değerlerdir. Kullanıcı girişinde <code>WHERE LOWER(email) = LOWER(?)</code> yazmak hem sorguyu çirkinleştirir hem de standart B-Tree indeksini devre dışı bırakır.
+        </p>
+        <div class="code-box">
+          <div class="code-bar">
+            <div class="code-bar-title"><span>citext ile Doğal Büyük/Küçük Harf Bağımsızlığı</span></div>
+            <button class="copy-btn" onclick="copySnippet('codeCitext', this)">Kopyala</button>
+          </div>
+          <pre><code id="codeCitext">-- 1. Eklentiyi ilk migration dosyasında bir kez yükleyin:
+CREATE EXTENSION IF NOT EXISTS citext;
+
+-- 2. Tablo tanımında veri tipini CITEXT olarak belirtin:
+CREATE TABLE users (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    email CITEXT NOT NULL,
+    username CITEXT NOT NULL
+);
+
+-- Artık aşağıdaki iki sorgu da B-Tree indeksini %100 kullanarak aynı kaydı bulur:
+-- SELECT * FROM users WHERE email = 'john.doe@company.com';
+-- SELECT * FROM users WHERE email = 'John.Doe@Company.COM';</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 4: BASEENTITY SQL SÖZLEŞMESİ -->
+    <section id="s4-base-entity-sql">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">4</span>
+          BaseEntity SQL Sözleşmesi &amp; Dual-ID Mimarisi
+        </h2>
+        <p class="section-desc">
+          Java tarafında geliştirdiğimiz kurumsal <code>BaseEntity.java</code> sınıfı (Dual-ID, Optimistic Locking, Full Auditing, Soft Delete) veritabanı şemasında birebir aşağıdaki sütun yapısıyla karşılık bulmalıdır.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Java Alanı</th>
+              <th>PostgreSQL 16 Sütun Tanımı</th>
+              <th>Kullanım Amacı &amp; Güvenlik Standardı</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Long id</code></td>
+              <td><code>BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY</code></td>
+              <td><strong>İç Veritabanı ID:</strong> Foreign key bağlantıları ve clustered indeksleme için maksimum performans. Dış dünyaya kesinlikle açılmaz.</td>
+            </tr>
+            <tr>
+              <td><code>UUID publicId</code></td>
+              <td><code>UUID NOT NULL DEFAULT gen_random_uuid()</code></td>
+              <td><strong>Dış API Kimliği:</strong> URL parametrelerinde (<code>/api/v1/users/{publicId}</code>) kullanılır. Tahmin edilemez, IDOR saldırılarını önler.</td>
+            </tr>
+            <tr>
+              <td><code>Long version</code></td>
+              <td><code>BIGINT NOT NULL DEFAULT 0</code></td>
+              <td><strong>Optimistic Locking:</strong> Eşzamanlı çakışmaları ve kayıp güncellemeleri (Lost Update) önler.</td>
+            </tr>
+            <tr>
+              <td><code>Instant createdAt</code></td>
+              <td><code>TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP</code></td>
+              <td>Kaydın oluşturulma zaman damgası (UTC).</td>
+            </tr>
+            <tr>
+              <td><code>Instant updatedAt</code></td>
+              <td><code>TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP</code></td>
+              <td>Son güncelleme zaman damgası (UTC).</td>
+            </tr>
+            <tr>
+              <td><code>String createdBy</code></td>
+              <td><code>VARCHAR(100) NOT NULL DEFAULT 'SYSTEM'</code></td>
+              <td>Kaydı oluşturan kullanıcı adı (JWT Subject).</td>
+            </tr>
+            <tr>
+              <td><code>String lastModifiedBy</code></td>
+              <td><code>VARCHAR(100) NOT NULL DEFAULT 'SYSTEM'</code></td>
+              <td>Son güncelleyen kullanıcı adı (JWT Subject).</td>
+            </tr>
+            <tr>
+              <td><code>boolean deleted</code></td>
+              <td><code>BOOLEAN NOT NULL DEFAULT FALSE</code></td>
+              <td><strong>Mantıksal Silme Bayrağı:</strong> Kaydın silinip silinmediğini gösterir.</td>
+            </tr>
+            <tr>
+              <td><code>Instant deletedAt</code></td>
+              <td><code>TIMESTAMPTZ</code></td>
+              <td>Silinme anı (Silinmemişse <code>NULL</code>).</td>
+            </tr>
+            <tr>
+              <td><code>String deletedBy</code></td>
+              <td><code>VARCHAR(100)</code></td>
+              <td>Kaydı silen kullanıcı (Silinmemişse <code>NULL</code>).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 5: SOFT DELETE & KISMİ İNDEKLER -->
+    <section id="s5-partial-indexes">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">5</span>
+          Soft Delete &amp; Kısmi İndeksler (Partial Indexes)
+        </h2>
+        <p class="section-desc">
+          Mantıksal silme (Soft Delete) uygulanan tablolarda klasik <code>UNIQUE</code> kısıtları ciddi bir mimari kriz yaratır. PostgreSQL'in <strong>Kısmi İndeks (Partial Index)</strong> özelliği bu sorunu kökünden çözer.
+        </p>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--amber);">
+        <div class="card-title" style="color: var(--amber);">⚠️ Klasik UNIQUE Kısıtının Çöküş Senaryosu</div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+          Tabloya klasik <code>ALTER TABLE users ADD CONSTRAINT uq_email UNIQUE (email);</code> kuralı koydunuz:
+        </p>
+        <ol style="font-size: 0.88rem; color: var(--text-muted); padding-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+          <li>Kullanıcı hesabını sildi: <code>deleted = true</code>, <code>email = 'ahmet@firma.com'</code>.</li>
+          <li>Aynı kullanıcı 3 ay sonra tekrar gelip <code>ahmet@firma.com</code> ile yeni hesap açmak istedi.</li>
+          <li><strong>HATA:</strong> Klasik UNIQUE kısıtı silinmiş eski kaydı da gördüğü için yeni kaydın eklenmesini engeller ve sistem çöker!</li>
+        </ol>
+      </div>
+
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title">
+            <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+            <span>Çözüm: Sadece Aktif Kayıtları Kapsayan Kısmi İndeks (Partial Unique Index)</span>
+          </div>
+          <button class="copy-btn" onclick="copySnippet('codePartialIndex', this)">Kopyala</button>
+        </div>
+        <pre><code id="codePartialIndex">-- Silinmiş kayıtları YOK SAYAN, yalnızca aktif kayıtlar için benzersizlik garantileyen indeks:
+CREATE UNIQUE INDEX uq_users_email_active ON users (email) WHERE deleted = FALSE;
+CREATE UNIQUE INDEX uq_users_username_active ON users (username) WHERE deleted = FALSE;
+
+-- Sık sorgulanan filtrelerde de indeks boyutunu küçültmek ve performansı artırmak için:
+CREATE INDEX idx_users_status_active ON users (status) WHERE deleted = FALSE;</code></pre>
+      </div>
+
+      <div class="callout callout-success">
+        <p>
+          <strong>Kısmi İndeksin Avantajları:</strong><br>
+          1. Silinmiş kayıtlar indekse dahil edilmediği için indeks boyutu (RAM tüketimi) dramatik olarak küçülür.<br>
+          2. Kullanıcı sildiği e-posta ile sonradan tekrar kayıt olabilir.<br>
+          3. Hibernate 6'nın <code>@SQLRestriction("deleted = false")</code> filtresiyle %100 uyumlu çalışır; Postgres sorgu optimizörü bu indeksi doğrudan seçer.
+        </p>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 6: APPLICATION.YML VE HIKARICP -->
+    <section id="s6-application-yml">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">6</span>
+          Spring Boot 4.1.1 application.yml &amp; HikariCP
+        </h2>
+        <p class="section-desc">
+          Flyway ve Hibernate JPA'nın uyum içinde çalışmasını sağlayan kurumsal konfigürasyon bloğu.
+        </p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-bar">
+          <div class="code-bar-title">
+            <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+            <span>src/main/resources/application.yml</span>
+          </div>
+          <button class="copy-btn" onclick="copySnippet('codeAppYml', this)">Kopyala</button>
+        </div>
+        <pre><code id="codeAppYml">spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:core_api_db}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      pool-name: EnterpriseHikariPool
+
+  jpa:
+    open-in-view: false # Anti-pattern ve sızıntıları önlemek için kesinlikle false!
+    hibernate:
+      ddl-auto: validate # Tabloları ASLA değiştirme; kontrol yalnızca Flyway'de!
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 25 # N+1 sorgu problemini engeller
+        default_schema: public
+        jdbc.time_zone: UTC # Zaman damgalarını UTC standardına mühürler
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false # Sırasız migration çalıştırmayı engelle</code></pre>
+      </div>
+    </section>
+
+    <!-- BÖLÜM 7: KRİZ YÖNETİMİ & CHEAT SHEET -->
+    <section id="s7-crisis-management">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="step-circle">7</span>
+          Geliştirici Kriz Yönetimi &amp; Sorun Giderme
+        </h2>
+        <p class="section-desc">
+          Flyway ile çalışırken en sık karşılaşılan hatalar, pratik kurtarma yöntemleri ve hızlı komutlar.
+        </p>
+      </div>
+
+      <div class="tabs-wrap">
+        <div class="tabs-nav">
+          <button class="tab-trigger active" onclick="switchTab(event, 'tab-repair')">1. Checksum Mismatch Hatası</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-failed')">2. Failed Migration (success = false)</button>
+          <button class="tab-trigger" onclick="switchTab(event, 'tab-reset')">3. Lokal Ortamı Sıfırlama (Docker)</button>
+        </div>
+
+        <!-- TAB 1: CHECKSUM -->
+        <div id="tab-repair" class="tab-content active">
+          <div class="card">
+            <h4 style="color: var(--amber); margin-bottom: 0.5rem;">🚨 Hata: Migration Checksum Mismatch</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              Daha önce çalışmış bir <code>V1__...sql</code> dosyasında typo veya sütun düzeltmesi yaptığınızda, Flyway güvenlik gereği uygulamanın açılmasını engeller:
+            </p>
+            <div class="code-box" style="margin: 0.75rem 0;">
+              <pre><code>FlywayException: Validate failed: Migrations have failed validation
+Migration checksum mismatch for migration version 1
+-> Applied to database : -1827491823
+-> Resolved locally    : 4920194821</code></pre>
+            </div>
+            
+            <h4 style="color: var(--green); margin-top: 1rem; margin-bottom: 0.5rem;">🛠️ Çözüm (Lokal Geliştirme):</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">
+              Lokal geliştirme ortamındaysanız, terminalden tek bir Maven komutuyla veritabanındaki kayıtlı checksum'ı dosyadaki yeni checksum ile eşitleyebilirsiniz:
+            </p>
+            <div class="code-box">
+              <div class="code-bar"><span>Terminal</span><button class="copy-btn" onclick="copySnippet('codeRepair', this)">Kopyala</button></div>
+              <pre><code id="codeRepair"># Veritabanındaki checksum değerlerini dosyalardaki güncel değerlerle senkronize eder:
+./mvnw flyway:repair</code></pre>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--rose);">
+              ⚠️ <strong>Canlı Ortam Kuralı:</strong> Üretim (Production) ortamına çıkmış bir migration script'i ASLA değiştirilmez! Düzeltme için daima yeni bir <code>V2__fix_column.sql</code> dosyası eklenir.
+            </p>
+          </div>
+        </div>
+
+        <!-- TAB 2: FAILED MIGRATION -->
+        <div id="tab-failed" class="tab-content">
+          <div class="card">
+            <h4 style="color: var(--rose); margin-bottom: 0.5rem;">🚨 Hata: Migration Failed (success = false)</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              SQL dosyanızda sözdizimi hatası veya eksik bir tablo varsa migration yarıda kalır. Flyway'in <code>flyway_schema_history</code> tablosunda ilgili sürüm <code>success = false</code> olarak kilitlenir.
+            </p>
+            <ol style="font-size: 0.88rem; color: var(--text-muted); padding-left: 1.5rem; margin-top: 0.75rem; line-height: 1.8;">
+              <li>SQL dosyanızdaki hatayı bulun ve düzeltin.</li>
+              <li>Terminalden <code>./mvnw flyway:repair</code> çalıştırın (Başarısız olan kaydı geçmiş tablosundan temizler).</li>
+              <li>Spring Boot uygulamasını tekrar başlatın (Flyway temizlenen adımı baştan kusursuz çalıştırır).</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- TAB 3: DOCKER RESET -->
+        <div id="tab-reset" class="tab-content">
+          <div class="card">
+            <h4 style="color: var(--cyan); margin-bottom: 0.5rem;">🔄 Lokal Docker PostgreSQL'i Sıfırdan Başlatma</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              Geliştirme esnasında veritabanını tamamen temizleyip tüm migration'ları sıfırdan test etmek istediğinizde:
+            </p>
+            <div class="code-box">
+              <div class="code-bar"><span>Terminal (Docker Temizlik &amp; Başlatma)</span><button class="copy-btn" onclick="copySnippet('codeDockerReset', this)">Kopyala</button></div>
+              <pre><code id="codeDockerReset"># 1. Mevcut PostgreSQL konteynerini ve volume verisini tamamen silin:
+docker compose down -v
+
+# 2. Temiz PostgreSQL konteynerini arka planda başlatın:
+docker compose up -d
+
+# 3. Uygulamayı çalıştırın (Flyway tüm script'leri V1'den itibaren sırayla koşar):
+./mvnw spring-boot:run</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STANDART BASELINE SQL ŞABLONU -->
+      <div class="card" style="margin-top: 2rem;">
+        <div class="card-title">🚀 Tam Örnek: V1__init_extensions_and_base_schema.sql</div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          Tüm bu kuralları (kilit zaman aşımı, citext, identity, BaseEntity audit sütunları, soft-delete kısmi indeksleri) içeren üretime hazır şablon:
+        </p>
+        <div class="code-box">
+          <div class="code-bar">
+            <div class="code-bar-title">
+              <span class="dot-group"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></span>
+              <span>src/main/resources/db/migration/V1__init_extensions_and_base_schema.sql</span>
+            </div>
+            <button class="copy-btn" onclick="copySnippet('codeV1Template', this)">Kopyala</button>
+          </div>
+          <pre><code id="codeV1Template">-- =====================================================================
+-- Enterprise PostgreSQL 16+ &amp; Flyway Baseline Migration
+-- Lock-Safe, citext, Dual-ID &amp; Soft-Delete Partial Index Blueprint
+-- =====================================================================
+
+-- 1. Kilitlenme Zaman Aşımları (Lock Starvation Koruması)
+SET statement_timeout = '60s';
+SET lock_timeout = '5s';
+
+-- 2. Gerekli Eklentiler (Extensions)
+CREATE EXTENSION IF NOT EXISTS citext;
+
+-- 3. Örnek Tablo: Users (Dual-ID, citext, BaseEntity Audit &amp; Soft Delete)
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    public_id UUID NOT NULL DEFAULT gen_random_uuid(),
+    username CITEXT NOT NULL,
+    email CITEXT NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    
+    -- Optimistic Locking
+    version BIGINT NOT NULL DEFAULT 0,
+    
+    -- Audit Trail (Kim &amp; Ne Zaman)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
+    last_modified_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
+    
+    -- Soft Delete (Mantıksal Silme)
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMPTZ,
+    deleted_by VARCHAR(100)
+);
+
+-- 4. Kısmi İndeksler (Partial Indexes - Soft Delete Uyumlu)
+-- Sadece silinmemiş (aktif) kayıtlar için benzersizlik sağlar:
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_public_id ON users (public_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_email_active ON users (email) WHERE deleted = FALSE;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_username_active ON users (username) WHERE deleted = FALSE;
+
+-- Sık filtrelenen durum alanı için kısmi indeks:
+CREATE INDEX IF NOT EXISTS idx_users_status_active ON users (status) WHERE deleted = FALSE;</code></pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg">Panoya kopyalandı!</span>
+  </div>
+
+  <script>
+    // Copy to Clipboard Utility
+    function copySnippet(elementId, btn) {
+      const el = document.getElementById(elementId);
+      const textToCopy = el.innerText || el.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast('Panoya başarıyla kopyalandı!');
+        if (btn) {
+          const originalText = btn.innerText;
+          btn.classList.add('copied');
+          btn.innerText = 'Kopyalandı!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerText = originalText;
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // Tab Switcher
+    function switchTab(evt, tabId) {
+      const container = evt.currentTarget.closest('.tabs-wrap');
+      const tabs = container.querySelectorAll('.tab-trigger');
+      const contents = container.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      contents.forEach(content => content.classList.remove('active'));
+
+      evt.currentTarget.classList.add('active');
+      const targetContent = container.querySelector('#' + tabId);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    }
+
+    // ScrollSpy for Sidebar
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('section');
+
+    window.addEventListener('scroll', () => {
+      let currentSectionId = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.scrollY >= sectionTop) {
+          currentSectionId = section.getAttribute('id');
+        }
+      });
+
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + currentSectionId) {
+          item.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
