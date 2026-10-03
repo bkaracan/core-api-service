@@ -65,8 +65,11 @@ public class AuthorizationServerConfig {
                         .clientAuthenticationMethod(ClientAuthenticationMethod.NONE) // Public Client
                         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                         .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                        .redirectUri("http://localhost:4200/auth/callback")
+                        .redirectUri("http://127.0.0.1:4200/auth/callback")
                         .redirectUri("http://localhost:3000/oauth2/callback")
                         .redirectUri("http://127.0.0.1:3000/oauth2/callback")
+                        .postLogoutRedirectUri("http://localhost:4200/")
                         .postLogoutRedirectUri("http://localhost:3000/")
                         .scope(OidcScopes.OPENID)
                         .scope(OidcScopes.PROFILE)
