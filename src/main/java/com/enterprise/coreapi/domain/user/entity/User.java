@@ -55,7 +55,7 @@ public class User extends BaseEntity {
     private Set<Role> roles = new HashSet<>();
 
     public User(String email, String passwordHash, String firstName, String lastName) {
-        this.email = email.toLowerCase().trim();
+        this.email = email.toLowerCase(Locale.ROOT).trim();
         this.passwordHash = passwordHash;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -82,12 +82,14 @@ public class User extends BaseEntity {
      * Sosyal hesap federasyon bağlantısı kurar.
      */
     public void linkSocialAccount(String provider, String providerUserId, String providerEmail) {
-        boolean exists = socialAccounts.stream()
-                .anyMatch(sa -> sa.getProvider().equalsIgnoreCase(provider));
-        if (exists) {
-            throw new IllegalStateException("Provider " + provider + " is already linked to this user");
+        for (UserSocialAccount sa : this.socialAccounts) {
+            if (sa.getProvider().equalsIgnoreCase(provider)) {
+                sa.setProviderUserId(providerUserId);
+                sa.setProviderEmail(providerEmail);
+                return;
+            }
         }
-        UserSocialAccount account = new UserSocialAccount(this, provider.toUpperCase(), providerUserId, providerEmail);
+        UserSocialAccount account = new UserSocialAccount(this, provider.toUpperCase(Locale.ROOT), providerUserId, providerEmail);
         this.socialAccounts.add(account);
     }
 

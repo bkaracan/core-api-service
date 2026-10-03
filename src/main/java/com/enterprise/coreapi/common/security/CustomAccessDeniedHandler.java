@@ -43,7 +43,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("errorCode", ErrorCode.ACCESS_DENIED.getCode());
         problem.setProperty("traceId", traceId);
-        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("timestamp", Instant.now().toString());
 
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);

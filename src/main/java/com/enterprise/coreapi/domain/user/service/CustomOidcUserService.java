@@ -37,7 +37,7 @@ public class CustomOidcUserService extends OidcUserService {
     @Transactional
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
-        String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
+        String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase(java.util.Locale.ROOT);
 
         String sub = oidcUser.getSubject();
         String email = oidcUser.getEmail();

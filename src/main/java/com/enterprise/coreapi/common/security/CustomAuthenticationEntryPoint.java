@@ -43,7 +43,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("errorCode", ErrorCode.UNAUTHORIZED_ACCESS.getCode());
         problem.setProperty("traceId", traceId);
-        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("timestamp", Instant.now().toString());
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
