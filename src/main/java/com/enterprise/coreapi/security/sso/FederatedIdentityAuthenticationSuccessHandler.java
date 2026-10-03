@@ -132,7 +132,7 @@ public class FederatedIdentityAuthenticationSuccessHandler extends SavedRequestA
         // Kullanıcı çözümlenememişse frontend login sayfasına hata parametresiyle yönlendir
         log.warn("Sosyal giriş sonrası kullanıcı profili çözümlenemedi, login sayfasına yönlendiriliyor.");
         clearAuthenticationAttributes(request);
-        getRedirectStrategy().sendRedirect(request, response, "http://localhost:4200/login?error=social_auth_failed");
+        getRedirectStrategy().sendRedirect(request, response, "http://localhost:4200/auth/login?error=social_auth_failed");
     }
 
     private String extractClientIp(HttpServletRequest request) {

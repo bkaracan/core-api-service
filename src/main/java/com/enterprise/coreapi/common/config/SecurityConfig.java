@@ -84,6 +84,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/actuator/**",
                                 "/api/v1/auth/**",
+                                "/oauth2/**",
+                                "/login/oauth2/**",
                                 "/login",
                                 "/error",
                                 "/favicon.ico"
@@ -101,6 +103,10 @@ public class SecurityConfig {
                                 .oidcUserService(customOidcUserService)
                         )
                         .successHandler(successHandler)
+                        .failureHandler((req, res, ex) -> {
+                            String errorMsg = ex != null ? ex.getMessage() : "oauth2_error";
+                            res.sendRedirect("http://localhost:4200/auth/login?error=" + java.net.URLEncoder.encode(errorMsg, java.nio.charset.StandardCharsets.UTF_8));
+                        })
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())

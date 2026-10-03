@@ -50,7 +50,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
+        String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase(Locale.ROOT);
 
         // 1. Profil Bilgilerini Sağlayıcıya Göre Ayrıştır (Parsing)
         FederatedProfile profile = extractProfile(registrationId, oAuth2User, userRequest);
@@ -73,6 +73,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
         attributes.put("user_id", user.getPublicId().toString());
         attributes.put("auth_provider", profile.provider());
+        attributes.put("email", user.getEmail());
 
         String nameAttributeKey = userRequest.getClientRegistration()
                 .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
@@ -115,7 +116,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private FederatedProfile extractProfile(String provider, OAuth2User oAuth2User, OAuth2UserRequest request) {
-        if ("GOOGLE".equals(provider)) {
+        if ("GOOGLE".equalsIgnoreCase(provider)) {
             String sub = oAuth2User.getAttribute("sub");
             String email = oAuth2User.getAttribute("email");
             Boolean emailVerified = oAuth2User.getAttribute("email_verified");
@@ -123,17 +124,39 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             String familyName = oAuth2User.getAttribute("family_name");
             return new FederatedProfile("GOOGLE", sub, email, Boolean.TRUE.equals(emailVerified),
                     givenName != null ? givenName : "GoogleUser", familyName != null ? familyName : "");
-        } else if ("GITHUB".equals(provider)) {
-            String id = String.valueOf(oAuth2User.getAttribute("id"));
-            String name = oAuth2User.getAttribute("name");
-            String[] names = (name != null ? name : "GitHub User").split(" ", 2);
+        } else if ("GITHUB".equalsIgnoreCase(provider)) {
+            Object idObj = oAuth2User.getAttribute("id");
+            String id = idObj != null ? String.valueOf(idObj) : "";
+            Object nameObj = oAuth2User.getAttribute("name");
+            String name = nameObj != null ? String.valueOf(nameObj) : null;
+            Object loginObj = oAuth2User.getAttribute("login");
+            String login = loginObj != null ? String.valueOf(loginObj) : null;
+            String displayName = (name != null && !name.isBlank()) ? name : (login != null ? login : "GitHubUser");
+            String[] names = displayName.split(" ", 2);
             String firstName = names[0];
             String lastName = names.length > 1 ? names[1] : "";
 
             String token = request.getAccessToken().getTokenValue();
             VerifiedEmail verifiedEmail = fetchGitHubPrimaryVerifiedEmail(token);
 
-            return new FederatedProfile("GITHUB", id, verifiedEmail.email(), verifiedEmail.verified(), firstName, lastName);
+            String email = verifiedEmail.email();
+            boolean isVerified = verifiedEmail.verified();
+
+            // Eğer emails endpoint'inden alınamadıysa oAuth2User attribute'unu veya noreply e-postasını kullan
+            if (!isVerified || email == null || email.isBlank() || "no-verified-email@github.internal".equals(email)) {
+                String publicEmail = oAuth2User.getAttribute("email");
+                if (publicEmail != null && !publicEmail.isBlank()) {
+                    email = publicEmail;
+                    isVerified = true;
+                } else {
+                    String loginUser = login != null ? login : ("user" + id);
+                    email = loginUser + "@users.noreply.github.com";
+                    isVerified = true;
+                    log.info("GitHub e-postası temin edilemedi, resmi noreply e-postası kullanılıyor: {}", email);
+                }
+            }
+
+            return new FederatedProfile("GITHUB", id, email, isVerified, firstName, lastName);
         }
         throw new OAuth2AuthenticationException(new OAuth2Error("unsupported_provider"), "Desteklenmeyen sağlayıcı: " + provider);
     }
@@ -142,6 +165,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
+            headers.set("User-Agent", "Enterprise-Core-API-SSO/1.0");
+            headers.set("Accept", "application/vnd.github.v3+json");
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
             ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
@@ -152,10 +177,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             );
 
             if (response.getBody() != null) {
+                // 1. Primary & Verified e-posta
                 for (Map<String, Object> emailEntry : response.getBody()) {
                     boolean primary = Boolean.TRUE.equals(emailEntry.get("primary"));
                     boolean verified = Boolean.TRUE.equals(emailEntry.get("verified"));
                     if (primary && verified) {
+                        return new VerifiedEmail((String) emailEntry.get("email"), true);
+                    }
+                }
+                // 2. Herhangi bir Verified e-posta
+                for (Map<String, Object> emailEntry : response.getBody()) {
+                    boolean verified = Boolean.TRUE.equals(emailEntry.get("verified"));
+                    if (verified) {
                         return new VerifiedEmail((String) emailEntry.get("email"), true);
                     }
                 }
