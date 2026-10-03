@@ -35,6 +35,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final com.enterprise.coreapi.domain.user.service.CustomOidcUserService customOidcUserService;
     private final FederatedIdentityAuthenticationSuccessHandler successHandler;
 
     /**
@@ -95,7 +96,10 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                                .oidcUserService(customOidcUserService)
+                        )
                         .successHandler(successHandler)
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

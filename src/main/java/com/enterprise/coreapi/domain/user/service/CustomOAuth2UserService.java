@@ -80,7 +80,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(authorities, attributes, nameAttributeKey);
     }
 
-    private User resolveOrCreateUser(FederatedProfile profile) {
+    public User resolveOrCreateUser(FederatedProfile profile) {
         // A. Sosyal hesap zaten bağlı mı?
         Optional<UserSocialAccount> existingSocial = socialAccountRepository
                 .findByProviderAndProviderUserId(profile.provider(), profile.providerUserId());
