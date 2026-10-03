@@ -69,6 +69,17 @@ public class FederatedIdentityAuthenticationSuccessHandler extends SavedRequestA
                 } catch (IllegalArgumentException ignored) {}
             }
 
+            if (loggedInUser == null) {
+                String email = (String) oauth2User.getAttributes().get("email");
+                if (email != null && !email.isBlank()) {
+                    Optional<User> userOpt = userRepository.findByEmailIgnoreCase(email);
+                    if (userOpt.isPresent()) {
+                        loggedInUser = userOpt.get();
+                        internalUserId = loggedInUser.getId();
+                    }
+                }
+            }
+
             String ipAddress = extractClientIp(request);
             String userAgent = request.getHeader("User-Agent");
 
@@ -81,7 +92,7 @@ public class FederatedIdentityAuthenticationSuccessHandler extends SavedRequestA
                     "Başarılı sosyal federasyon oturumu: " + authProvider
             );
             auditLogRepository.save(auditLog);
-            log.info("Sosyal giriş başarılı: userId={}, provider={}", userPublicIdStr, authProvider);
+            log.info("Sosyal giriş başarılı: userId={}, provider={}", loggedInUser != null ? loggedInUser.getPublicId() : "N/A", authProvider);
         }
 
         // Eğer SSO PKCE yetkilendirme isteği varsa (savedRequest), akışı SAS authorization-code'a devam ettir
@@ -118,7 +129,10 @@ public class FederatedIdentityAuthenticationSuccessHandler extends SavedRequestA
             return;
         }
 
-        super.onAuthenticationSuccess(request, response, authentication);
+        // Kullanıcı çözümlenememişse frontend login sayfasına hata parametresiyle yönlendir
+        log.warn("Sosyal giriş sonrası kullanıcı profili çözümlenemedi, login sayfasına yönlendiriliyor.");
+        clearAuthenticationAttributes(request);
+        getRedirectStrategy().sendRedirect(request, response, "http://localhost:4200/login?error=social_auth_failed");
     }
 
     private String extractClientIp(HttpServletRequest request) {

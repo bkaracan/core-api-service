@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,18 @@ public class UserController {
                 response = userService.getProfileByPublicId(UUID.fromString(userIdClaim));
             } else {
                 response = userService.getProfileByEmail(jwt.getSubject());
+            }
+        } else if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
+            String userIdAttr = (String) oauth2User.getAttributes().get("user_id");
+            if (userIdAttr != null) {
+                response = userService.getProfileByPublicId(UUID.fromString(userIdAttr));
+            } else {
+                String email = (String) oauth2User.getAttributes().get("email");
+                if (email != null && !email.isBlank()) {
+                    response = userService.getProfileByEmail(email);
+                } else {
+                    response = userService.getProfileByEmail(authentication.getName());
+                }
             }
         } else {
             response = userService.getProfileByEmail(authentication.getName());
@@ -81,6 +94,17 @@ public class UserController {
                 return UUID.fromString(userIdClaim);
             }
             return userService.getProfileByEmail(jwt.getSubject()).publicId();
+        }
+
+        if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
+            String userIdAttr = (String) oauth2User.getAttributes().get("user_id");
+            if (userIdAttr != null) {
+                return UUID.fromString(userIdAttr);
+            }
+            String email = (String) oauth2User.getAttributes().get("email");
+            if (email != null && !email.isBlank()) {
+                return userService.getProfileByEmail(email).publicId();
+            }
         }
 
         return userService.getProfileByEmail(authentication.getName()).publicId();
