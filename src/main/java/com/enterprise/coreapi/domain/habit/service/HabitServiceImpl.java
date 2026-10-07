@@ -83,9 +83,13 @@ public class HabitServiceImpl implements HabitService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Kullanıcı bulunamadı."));
 
         Identity identity = null;
-        if (request.identityPublicId() != null) {
-            identity = identityRepository.findByPublicIdAndUser_PublicId(request.identityPublicId(), userPublicId)
-                    .orElse(null);
+        if (request.identityPublicId() != null && !request.identityPublicId().isBlank()) {
+            try {
+                UUID identityUuid = UUID.fromString(request.identityPublicId());
+                identity = identityRepository.findByPublicIdAndUser_PublicId(identityUuid, userPublicId)
+                        .orElse(null);
+            } catch (IllegalArgumentException ignored) {
+            }
         }
 
         HabitCategory category = HabitCategory.KARIYER;
@@ -397,6 +401,118 @@ public class HabitServiceImpl implements HabitService {
         habitRepository.save(habit);
         log.info("Alışkanlık başarıyla silindi ve kazanımları dinamik olarak düşüldü: {} (User: {}, Silinen Log: {}, Düşülen Oy: {})",
                 habitPublicId, userPublicId, logCount, votesToDeduct);
+    }
+
+    @Override
+    @Transactional
+    public HabitResponse updateHabit(UUID userPublicId, UUID habitPublicId, UpdateHabitRequest request) {
+        Habit habit = habitRepository.findByPublicIdAndUser_PublicId(habitPublicId, userPublicId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Alışkanlık bulunamadı."));
+
+        applyHabitUpdates(habit, request, userPublicId);
+
+        Habit saved = habitRepository.save(habit);
+        log.info("Alışkanlık güncellendi: {} (PublicId: {}, User: {})", saved.getTitle(), saved.getPublicId(), userPublicId);
+
+        boolean completedToday = isHabitCompletedToday(saved.getId(), userPublicId);
+        return toHabitResponse(saved, completedToday);
+    }
+
+    private void applyHabitUpdates(Habit habit, UpdateHabitRequest request, UUID userPublicId) {
+        if (request == null) return;
+        updateTitleAndCategory(habit, request);
+        updateIdentity(habit, request.identityPublicId(), userPublicId);
+        updateFourLawsFields(habit, request);
+        updateOptionalFields(habit, request);
+    }
+
+    private void updateTitleAndCategory(Habit habit, UpdateHabitRequest request) {
+        if (request.title() != null && !request.title().isBlank()) {
+            habit.setTitle(request.title().trim());
+        }
+        if (request.category() != null && !request.category().isBlank()) {
+            try {
+                habit.setCategory(HabitCategory.valueOf(request.category().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException ignored) {
+                // Keep existing category on invalid value
+            }
+        }
+    }
+
+    private void updateIdentity(Habit habit, String identityPublicId, UUID userPublicId) {
+        if (identityPublicId == null || identityPublicId.isBlank()) {
+            return;
+        }
+        try {
+            UUID identityUuid = UUID.fromString(identityPublicId);
+            identityRepository.findByPublicIdAndUser_PublicId(identityUuid, userPublicId)
+                    .ifPresent(habit::setIdentity);
+        } catch (IllegalArgumentException ignored) {
+            Identity fallback = findIdentityForCategory(userPublicId, habit.getCategory());
+            if (fallback != null) {
+                habit.setIdentity(fallback);
+            }
+        }
+    }
+
+    private void updateFourLawsFields(Habit habit, UpdateHabitRequest request) {
+        if (request.cueTrigger() != null && !request.cueTrigger().isBlank()) {
+            habit.setCueTrigger(request.cueTrigger().trim());
+        }
+        if (request.targetLocation() != null && !request.targetLocation().isBlank()) {
+            habit.setTargetLocation(request.targetLocation().trim());
+        }
+        if (request.responseMicroStep() != null && !request.responseMicroStep().isBlank()) {
+            habit.setResponseMicroStep(request.responseMicroStep().trim());
+        }
+    }
+
+    private void updateOptionalFields(Habit habit, UpdateHabitRequest request) {
+        if (request.targetMinutes() != null && request.targetMinutes() > 0) {
+            habit.setTargetMinutes(request.targetMinutes());
+        }
+        if (request.rewardXp() != null && request.rewardXp() > 0) {
+            habit.setRewardXp(request.rewardXp());
+        }
+        if (request.cravingBenefit() != null) {
+            habit.setCravingBenefit(request.cravingBenefit());
+        }
+        if (request.habitStackCurrent() != null) {
+            habit.setHabitStackCurrent(request.habitStackCurrent());
+        }
+        if (request.habitStackNew() != null) {
+            habit.setHabitStackNew(request.habitStackNew());
+        }
+    }
+
+    private boolean isHabitCompletedToday(Long habitId, UUID userPublicId) {
+        return habitLogRepository.findAllByUser_PublicIdAndLogDate(userPublicId, LocalDate.now())
+                .stream()
+                .anyMatch(logItem -> logItem.isCompleted() && logItem.getHabit().getId().equals(habitId));
+    }
+
+    private HabitResponse toHabitResponse(Habit habit, boolean isCompletedToday) {
+        HabitResponse res = habitMapper.toResponse(habit);
+        return new HabitResponse(
+                res.publicId(),
+                res.identityPublicId(),
+                res.identityName(),
+                res.title(),
+                res.category(),
+                res.cueTrigger(),
+                res.targetLocation(),
+                res.habitStackCurrent(),
+                res.habitStackNew(),
+                res.cravingBenefit(),
+                res.responseMicroStep(),
+                res.rewardXp(),
+                res.frequency(),
+                res.targetMinutes(),
+                res.currentStreak(),
+                res.bestStreak(),
+                res.active(),
+                isCompletedToday
+        );
     }
 
     private Identity findIdentityForCategory(UUID userPublicId, HabitCategory category) {

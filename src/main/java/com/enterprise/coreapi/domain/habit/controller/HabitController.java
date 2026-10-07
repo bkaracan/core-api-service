@@ -63,6 +63,17 @@ public class HabitController {
         return ApiResponse.success(response, message, traceId);
     }
 
+    @PutMapping("/{publicId}")
+    @Operation(summary = "Alışkanlığı Güncelle", description = "Mevcut atomik alışkanlığın detaylarını (başlık, işaret, mekan, mikro adım, süre, kategori vb.) günceller.")
+    public ApiResponse<HabitResponse> updateHabit(Authentication authentication,
+                                                  @PathVariable UUID publicId,
+                                                  @Valid @RequestBody UpdateHabitRequest request) {
+        UUID userPublicId = resolveUserPublicId(authentication);
+        HabitResponse response = habitService.updateHabit(userPublicId, publicId, request);
+        String traceId = MDC.get("traceId");
+        return ApiResponse.success(response, "Alışkanlık başarıyla güncellendi.", traceId);
+    }
+
     @DeleteMapping("/{publicId}")
     @Operation(summary = "Alışkanlığı Sil", description = "Alışkanlığı mantıksal olarak (soft-delete) siler.")
     public ApiResponse<Void> deleteHabit(Authentication authentication, @PathVariable UUID publicId) {
