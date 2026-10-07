@@ -17,5 +17,7 @@ public interface HabitService {
 
     KaizenReflectionResponse saveDailyReflection(UUID userPublicId, KaizenReflectionRequest request);
 
+    HabitResponse updateHabit(UUID userPublicId, UUID habitPublicId, UpdateHabitRequest request);
+
     void deleteHabit(UUID userPublicId, UUID habitPublicId);
 }
