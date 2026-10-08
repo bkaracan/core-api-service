@@ -7,19 +7,20 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.time.Instant;
 import java.time.LocalDate;
-
+/**
+ * Alışkanlık Günlük Tamamlama Çetelesi (HabitLog).
+ * Günlük tamamlama durumu bir transactional state olduğundan ve geri alma (uncheck)
+ * işlemi bir arşivleme değil durum iptali olduğundan, veritabanında ölü satır birikmesini
+ * ve tekillik çakışmasını (uq_habit_log_daily) önlemek adına HARD DELETE uygulanır.
+ */
 @Entity
 @Table(
         name = "habit_logs",
         uniqueConstraints = @UniqueConstraint(name = "uq_habit_log_daily", columnNames = {"habit_id", "log_date"})
 )
-@SQLDelete(sql = "UPDATE habit_logs SET deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND version = ?")
-@SQLRestriction("deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
